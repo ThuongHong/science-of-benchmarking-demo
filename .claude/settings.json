@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/python src/run_evaluation.py --throttle 2)",
+      "Bash(git init *)",
+      "Bash(rtk git *)",
+      "Bash(grep -iE '\\\\.env$|\\\\.venv')"
+    ]
+  }
+}

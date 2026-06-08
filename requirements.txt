@@ -1,0 +1,13 @@
+# Mini Benchmark Evaluator — runtime deps
+# Tested on Google Colab (free T4) with Python 3.11.
+# Pinned loosely so a fresh Colab kernel resolves a compatible CUDA build of torch.
+
+torch>=2.3
+transformers>=4.45
+accelerate>=0.34
+bitsandbytes>=0.43      # 4-bit quantization so Gemma-4 E4B fits a 16GB T4
+datasets>=2.20          # pulls MMLU + GSM8K from the Hugging Face Hub
+sentencepiece>=0.2      # Gemma tokenizer
+pandas>=2.0
+matplotlib>=3.7
+numpy>=1.26
