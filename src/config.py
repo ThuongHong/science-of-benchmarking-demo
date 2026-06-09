@@ -43,17 +43,30 @@ PEERS = [
      "model_id": "Qwen/Qwen2.5-3B-Instruct", "params_b": 3.1},
 ]
 
+# A *domain specialist*, deliberately off the weight-matched panel (7B, math-
+# tuned). On the general panel the MMLU and GSM8K rankings agree perfectly
+# (Spearman rho = 1.0). A math specialist should climb on GSM8K while staying
+# mediocre on MMLU -- if so, it breaks the tie (rho < 1) and turns the
+# rank-stability section into a positive result: the benchmark, not raw skill,
+# picks the winner. Needs room for a chain-of-thought, so give it more tokens.
+MATH_SPECIALIST = {
+    "kind": "hf", "name": "qwen2.5-math-7b",
+    "model_id": "Qwen/Qwen2.5-Math-7B-Instruct",
+    "max_new_tokens": 768, "params_b": 7.0,
+}
+
 BASELINES = [
     {"kind": "baseline", "baseline": "random"},
     {"kind": "baseline", "baseline": "majority"},
 ]
 
-# real run = Gemma rungs (E2B, E4B) + Qwen3.5-4B + ~4B peers + baselines
-SYSTEMS = GEMMA_SYSTEMS + [QWEN_STRONG] + PEERS + BASELINES
+# real run = Gemma rungs (E2B, E4B) + Qwen3.5-4B + ~4B peers + math specialist
+# + baselines
+SYSTEMS = GEMMA_SYSTEMS + [QWEN_STRONG] + PEERS + [MATH_SPECIALIST] + BASELINES
 
 # name -> size (billions), for reporting the weight class in the analysis
 PARAMS_B = {s["name"]: s["params_b"]
-            for s in GEMMA_SYSTEMS + [QWEN_STRONG] + PEERS}
+            for s in GEMMA_SYSTEMS + [QWEN_STRONG] + PEERS + [MATH_SPECIALIST]}
 
 # no-GPU pipeline test: two fake rungs of different skill + baselines
 FAKE_SYSTEMS = [

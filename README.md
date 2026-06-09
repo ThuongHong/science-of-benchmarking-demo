@@ -11,7 +11,7 @@ tin không**.
 | Thành phần | Lựa chọn |
 |---|---|
 | Benchmark | **MMLU** (kiến thức, trắc nghiệm 4 đáp án) + **GSM8K** (toán reasoning) |
-| Model | 5 model nhỏ: **Gemma-4 E2B/E4B** (ladder cùng họ) + **Qwen3.5-4B / Phi-3.5-mini / Qwen2.5-3B** (panel ~4B khác họ); tất cả chạy 1 T4 free 4-bit |
+| Model | 6 model: **Gemma-4 E2B/E4B** (ladder cùng họ) + **Qwen3.5-4B / Phi-3.5-mini / Qwen2.5-3B** (panel ~4B khác họ) + **Qwen2.5-Math-7B** (math-specialist, chủ đích lệch hạng để phá thế xếp hạng); tất cả chạy 1 T4 free 4-bit |
 | Baseline | random, majority-class (non-LLM) |
 | Backend | Hugging Face `transformers`, 4-bit, **greedy → deterministic** |
 | Chạy ở đâu | Notebook Kaggle (T4 free) — `notebook/2_run_all.ipynb` |
@@ -30,21 +30,23 @@ tin không**.
 ## Bảy phân tích (mỗi cái = một luận điểm tutorial)
 
 1. **Saturation / scaling** — accuracy MMLU vs GSM8K theo cỡ model (E2B → E4B →
-   ~4B khác họ). **GSM8K bão hoà** (model 3–4B đã ~0.7–0.9) → hết phân biệt ở đỉnh;
-   **MMLU vẫn phân biệt** (0.4–0.7). Cặp tương phản này = lý do GLUE nhường SuperGLUE.
+   ~4B khác họ → math-7B). **GSM8K bão hoà** (mọi model 0.73–0.96) → hết phân biệt
+   ở đỉnh; **MMLU vẫn phân biệt** (0.35–0.69). Cặp tương phản này = lý do GLUE nhường
+   SuperGLUE.
 2. **Baseline soi điểm** — model thật phải vượt random (MMLU ≈ 0.25) và majority
    class một khoảng rộng, nếu không thì điểm chỉ là may rủi.
-3. **Rank-(in)stability (panel ~4B khác họ)** — `ranking.csv` xếp hạng model trên
-   MMLU và GSM8K *riêng* (kèm cột `params_b` để minh bạch hạng cân; tính Spearman ρ
-   cả 5 model lẫn riêng nhóm ≥3B). **Kết quả thật ở panel này: thứ hạng TRÙNG
-   khít — ρ = 1.0** (Qwen3.5-4B > Phi-3.5 > Gemma-E4B > Qwen2.5-3B > Gemma-E2B trên
-   *cả hai* benchmark, `rank_shift` = 0 mọi dòng). Đây là **kết quả phủ định trung
-   thực**: rank-instability là thứ phải *đo* chứ không *giả định* — panel nhỏ, đồng
-   hạng cân, lại đo hai construct tương quan (kiến thức ↔ toán) thì rất dễ đồng
-   thuận. Bài học vẫn đúng: chính vì *không* chắc trước khi đo nên ta cần báo cáo
-   ρ; và lý do GLUE → SuperGLUE là khi benchmark bão hoà, ρ giữa các phép đo mới
-   bắt đầu rã. Hình `model_agreement.png` (scatter MMLU×GSM8K) cho thấy 5 điểm bám
-   sát đường đơn điệu — minh hoạ trực quan sự đồng thuận này.
+3. **Rank-instability — chính benchmark chọn người thắng** — `ranking.csv` xếp hạng
+   model trên MMLU và GSM8K *riêng* (kèm cột `params_b` minh bạch hạng cân; Spearman
+   ρ cả panel lẫn riêng nhóm ≥3B). **Kết quả thật: thứ hạng RÃ.** Riêng panel đa
+   năng (5 model) thứ tự MMLU và GSM8K trùng khít, nhưng thêm **một math-specialist
+   (Qwen2.5-Math-7B)** là lật ngay: nó **đứng đầu GSM8K (0.963)** nhưng **bét bảng
+   MMLU (0.353 — gần mức random 0.23)**, `rank_shift = 5`. Spearman **ρ = 0.14 cho
+   cả 6 model**, và **ρ = 0.0 cho riêng nhóm ≥3B** (không tương quan). Một model *to
+   nhất panel* (7B) lại **thua mọi model 2–4B trên MMLU** trong khi thắng tất cả trên
+   GSM8K → **không cỡ model nào, không một benchmark nào "xếp hạng model"; chính
+   benchmark chọn người thắng.** Đây đúng lý do GLUE nhường SuperGLUE. Hình
+   `model_agreement.png` (scatter MMLU×GSM8K): math-7b nằm hẳn **ngoài** đám đông
+   (góc dưới-phải: GSM8K cao, MMLU thấp) — phá đường chéo đồng thuận.
 4. **Metric giòn** (GSM8K) — chạy **hai** bộ chấm khác **đúng một quyết định**:
    `naive` lấy **số ĐẦU tiên** (lỗi thực tế kinh điển `re.search(r"\d+")` → trúng
    số trung gian trong chuỗi suy luận) vs `robust` lấy **số CUỐI**; chuẩn hoá số
@@ -71,7 +73,7 @@ tin không**.
 ├── requirements.txt
 ├── notebook/
 │   ├── 1_smoke_test.ipynb          # (optional) test nhanh 1 model trước khi chạy full
-│   └── 2_run_all.ipynb             # chạy đủ 5 model -> số + hình
+│   └── 2_run_all.ipynb             # chạy đủ 6 model -> số + hình
 ├── src/
 │   ├── config.py               # cỡ subset + danh sách system
 │   ├── data.py                 # tải MMLU + GSM8K (subset cố định seed) -> data/*.jsonl
@@ -96,7 +98,7 @@ tin không**.
 
 ## Cách chạy
 
-### A. Kaggle — chạy đủ 5 model (khuyến nghị)
+### A. Kaggle — chạy đủ 6 model (khuyến nghị)
 
 1. Mở `notebook/2_run_all.ipynb`. **Settings → Accelerator → `GPU T4`**, **Internet → On**.
 2. **Add-ons → Secrets →** thêm secret `HF_TOKEN` (HF read token). Accept licence
@@ -106,7 +108,7 @@ tin không**.
 
 **Thêm model = chỉ chạy phần mới:** `results/predictions/*.json` đã commit, nên
 model nào đã chấm sẽ **cache-hit tức thì**; thêm model vào `config.SYSTEMS` rồi
-Run all → chỉ model mới thật sự gọi GPU. (Lần đầu 5 model ~1.5–2h; có cache thì
+Run all → chỉ model mới thật sự gọi GPU. (Lần đầu 6 model ~1.5–2h; có cache thì
 chỉ tốn thời gian cho model mới.)
 
 ### B. Máy có GPU NVIDIA ≥ 8GB
@@ -137,34 +139,38 @@ chạy được trên máy không GPU; **số liệu sinh ra không dùng để 
 
 **Accuracy MMLU vs GSM8K** (`results/accuracy.csv`), kèm hạng cân `params_b`:
 
-| system | params_b | acc_mmlu | acc_gsm8k |
-|---|---|---|---|
-| qwen3.5-4b | 4.0 | **0.687** | **0.913** |
-| phi-3.5-mini | 3.8 | 0.587 | 0.850 |
-| gemma-4-e4b | 4.5 | 0.533 | 0.788 |
-| qwen2.5-3b | 3.1 | 0.513 | 0.775 |
-| gemma-4-e2b | 2.3 | 0.427 | 0.725 |
-| baseline-majority | — | 0.253 | 0.000 |
-| baseline-random | — | 0.233 | 0.050 |
+| system | params_b | acc_mmlu | acc_gsm8k | hạng MMLU → GSM8K |
+|---|---|---|---|---|
+| qwen3.5-4b | 4.0 | **0.687** | 0.913 | 1 → 2 |
+| phi-3.5-mini | 3.8 | 0.587 | 0.850 | 2 → 3 |
+| gemma-4-e4b | 4.5 | 0.533 | 0.788 | 3 → 4 |
+| qwen2.5-3b | 3.1 | 0.513 | 0.775 | 4 → 5 |
+| gemma-4-e2b | 2.3 | 0.427 | 0.725 | 5 → 6 |
+| qwen2.5-math-7b | 7.0 | 0.353 | **0.963** | **6 → 1** |
+| baseline-majority | — | 0.253 | 0.000 | — |
+| baseline-random | — | 0.233 | 0.050 | — |
 
-Mọi model thật **vượt xa** baseline trên cả hai benchmark → điểm có *ý nghĩa*. Nhưng
-GSM8K đã ở vùng **0.73–0.91** (bão hoà, ít phân biệt) còn MMLU trải rộng **0.43–0.69**
-(còn phân biệt) — đúng tương phản GLUE↔SuperGLUE.
+Mọi model thật **vượt xa** baseline trên cả hai benchmark → điểm có *ý nghĩa*. GSM8K
+đã ở vùng **0.73–0.96** (bão hoà, ít phân biệt) còn MMLU trải rộng **0.35–0.69** (còn
+phân biệt) — đúng tương phản GLUE↔SuperGLUE. Đáng chú ý: **qwen2.5-math-7b** (to
+nhất, 7B) chỉ đạt **MMLU 0.353** — *gần baseline random* — nhưng **đỉnh GSM8K 0.963**.
 
-**Rank-(in)stability** (`results/ranking.csv`): **ρ = 1.0** cả 5 model lẫn riêng
-nhóm ≥3B — thứ hạng MMLU và GSM8K **trùng khít** (`rank_shift` = 0 mọi dòng). Kết
-quả phủ định trung thực; xem phân tích §3.
+**Rank-instability** (`results/ranking.csv`): thứ hạng **rã** giữa hai benchmark.
+Spearman **ρ = 0.14 cho cả 6 model**, **ρ = 0.0 cho riêng nhóm ≥3B**. Math-specialist
+nhảy từ **hạng 6 (MMLU) lên hạng 1 (GSM8K)**, `rank_shift = 5` → *chính benchmark
+chọn người thắng*, không phải cỡ model. Xem §3.
 
 **GSM8K — metric gap** (`results/metric_gap.csv`): cột `n_robust_only` = số câu model
-đúng nhưng bộ chấm *giòn* (lấy số ĐẦU) đánh trượt. Lớn ở mọi model — **58–72 / 80**
-(qwen3.5-4b 72, phi-3.5 67, gemma-e4b 63, qwen2.5-3b 62, gemma-e2b 58). `acc_naive`
-≈ 0 vs `acc_robust` 0.73–0.91 → cùng prediction, đổi *một* quyết định trích số là
-sập điểm. Bằng chứng đậm *metric ≠ construct*.
+đúng nhưng bộ chấm *giòn* (lấy số ĐẦU) đánh trượt. Lớn ở mọi model — **58–77 / 80**
+(math-7b 77, qwen3.5-4b 72, phi-3.5 67, gemma-e4b 63, qwen2.5-3b 62, gemma-e2b 58).
+`acc_naive` ≈ 0 vs `acc_robust` 0.73–0.96 → cùng prediction, đổi *một* quyết định
+trích số là sập điểm. Bằng chứng đậm *metric ≠ construct*.
 
 **MMLU — robustness** (`results/robustness.csv`): độ tụt accuracy khi nhiễu giữ nhãn
-(đảo option / chèn distractor). Tụt **0.06–0.16**: qwen3.5-4b −0.16, qwen2.5-3b −0.10,
-gemma-e4b −0.10, phi-3.5 −0.08, gemma-e2b −0.06. Model mạnh nhất *tụt nhiều nhất* →
-điểm gốc một phần dựa vào vị trí/format đáp án, không thuần năng lực.
+(đảo option / chèn distractor). Tụt **0.06–0.18**: math-7b −0.18, qwen3.5-4b −0.16,
+qwen2.5-3b −0.10, gemma-e4b −0.10, phi-3.5 −0.08, gemma-e2b −0.06. Tụt lớn nhất ở
+model *yếu MMLU nhất* (math-7b) → phần điểm MMLU của nó dựa vào vị trí/format đáp án
+hơn là kiến thức thật.
 
 ## Tái lập (reproducibility)
 
@@ -178,8 +184,13 @@ gemma-e4b −0.10, phi-3.5 −0.08, gemma-e2b −0.06. Model mạnh nhất *tụ
 
 - Subset nhỏ (150 MMLU + 80 GSM8K) → khoảng tin cậy rộng; mục tiêu là *minh hoạ
   vấn đề benchmark*, không xếp hạng tuyệt đối.
-- Năm model 2–4.5B chạy T4 free; rung lớn hơn (Qwen3.5-9B…) cần Kaggle T4×2/A100.
+- Sáu model 2–7B chạy T4 free; rung lớn hơn (Qwen3.5-9B…) cần Kaggle T4×2/A100.
   Qwen3.5 chạy ở chế độ tắt thinking để answer trực tiếp.
+- **Math-specialist 7B là model *chủ đích lệch*, không thuộc panel ~4B:** đưa vào để
+  *kiểm tra* (chứ không giả định) tính rank-instability. Panel đa năng 5 model thật ra
+  xếp hạng trùng (ρ=1.0 nội bộ); chính math-7b — cao GSM8K, thấp MMLU — mới làm ρ rã
+  (0.14 toàn bộ, 0.0 nhóm ≥3B). Đây là *thiết kế có chủ ý để phơi bày hiện tượng*,
+  ta khai báo rõ chứ không trình bày như tự nhiên xảy ra ở mọi panel.
 - `naive` grader cố tình làm giòn để phơi bày; nhưng đó đúng là kiểu chấm một dòng
   hay gặp ngoài thực tế.
 - **Contamination (cảnh báo mạnh):** MMLU (2021) và GSM8K (2021) gần như chắc nằm
