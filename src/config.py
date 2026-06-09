@@ -13,9 +13,15 @@ SEED = 0
 
 # Gemma models are gated on the Hub: accept the license once and pass an
 # HF token (notebook does huggingface_hub.login) before the first run.
+# `params_b` (billions of params) is metadata for reporting only -- it lets the
+# analysis show the weight class so a small model's low score isn't mistaken for
+# a family effect. E2B/E4B are the same-family scaling pair; the ~3-4B models
+# form the weight-matched cross-family panel.
 GEMMA_SYSTEMS = [
-    {"kind": "gemma", "name": "gemma-4-e2b", "model_id": "google/gemma-4-E2B-it"},
-    {"kind": "gemma", "name": "gemma-4-e4b", "model_id": "google/gemma-4-E4B-it"},
+    {"kind": "gemma", "name": "gemma-4-e2b", "model_id": "google/gemma-4-E2B-it",
+     "params_b": 2.3},
+    {"kind": "gemma", "name": "gemma-4-e4b", "model_id": "google/gemma-4-E4B-it",
+     "params_b": 4.5},
 ]
 
 # A stronger, cross-family rung that still fits a single T4 in 4-bit (~3GB).
@@ -24,6 +30,7 @@ GEMMA_SYSTEMS = [
 QWEN_STRONG = {
     "kind": "hf", "name": "qwen3.5-4b", "model_id": "Qwen/Qwen3.5-4B",
     "max_new_tokens": 768, "chat_template_kwargs": {"enable_thinking": False},
+    "params_b": 4.0,
 }
 
 # Same-size (~3-4B) peers from other families. All ungated, non-thinking, fit a
@@ -31,9 +38,9 @@ QWEN_STRONG = {
 # across MMLU and GSM8K? Disagreement = "the benchmark picks the winner".
 PEERS = [
     {"kind": "hf", "name": "phi-3.5-mini",
-     "model_id": "microsoft/Phi-3.5-mini-instruct"},
+     "model_id": "microsoft/Phi-3.5-mini-instruct", "params_b": 3.8},
     {"kind": "hf", "name": "qwen2.5-3b",
-     "model_id": "Qwen/Qwen2.5-3B-Instruct"},
+     "model_id": "Qwen/Qwen2.5-3B-Instruct", "params_b": 3.1},
 ]
 
 BASELINES = [
@@ -43,6 +50,10 @@ BASELINES = [
 
 # real run = Gemma rungs (E2B, E4B) + Qwen3.5-4B + ~4B peers + baselines
 SYSTEMS = GEMMA_SYSTEMS + [QWEN_STRONG] + PEERS + BASELINES
+
+# name -> size (billions), for reporting the weight class in the analysis
+PARAMS_B = {s["name"]: s["params_b"]
+            for s in GEMMA_SYSTEMS + [QWEN_STRONG] + PEERS}
 
 # no-GPU pipeline test: two fake rungs of different skill + baselines
 FAKE_SYSTEMS = [

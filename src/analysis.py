@@ -24,6 +24,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
 
+import config  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 RES = ROOT / "results"
 FIG = RES / "figures"
@@ -41,8 +43,26 @@ def accuracy(df: pd.DataFrame) -> pd.DataFrame:
     tab = (main.groupby(["system", "benchmark"])["correct"].mean()
            .unstack(fill_value=0.0).reset_index())
     tab = tab.rename(columns={"mmlu": "acc_mmlu", "gsm8k": "acc_gsm8k"})
+    tab["params_b"] = tab["system"].map(config.PARAMS_B)
     tab["is_baseline"] = tab["system"].map(_is_baseline)
     return tab.sort_values(["is_baseline", "acc_mmlu"], ascending=[True, False])
+
+
+def coverage(df: pd.DataFrame) -> pd.DataFrame:
+    """Fraction of items where an answer could be extracted (1 - miss rate).
+
+    If one model loses more to extraction failures than another, the comparison
+    is not purely about capability -- a fairness / measurement-noise concern that
+    is itself a 'what is actually measured' point of the tutorial.
+    """
+    llm = df[~df["system"].map(_is_baseline)]
+    rows = []
+    for (s, b), g in llm.groupby(["system", "benchmark"]):
+        ex = g["extracted"].astype(str).str.strip()
+        miss = (ex == "") | (ex.str.lower() == "nan")
+        rows.append({"system": s, "benchmark": b,
+                     "coverage": round(1 - miss.mean(), 3), "n": len(g)})
+    return pd.DataFrame(rows).sort_values(["benchmark", "system"])
 
 
 def fig_saturation(tab: pd.DataFrame) -> None:
@@ -202,7 +222,7 @@ def ranking(df: pd.DataFrame) -> pd.DataFrame:
     llm["rank_mmlu"] = llm["acc_mmlu"].rank(ascending=False, method="min").astype(int)
     llm["rank_gsm8k"] = llm["acc_gsm8k"].rank(ascending=False, method="min").astype(int)
     llm["rank_shift"] = (llm["rank_mmlu"] - llm["rank_gsm8k"]).abs()
-    return llm[["system", "acc_mmlu", "rank_mmlu", "acc_gsm8k",
+    return llm[["system", "params_b", "acc_mmlu", "rank_mmlu", "acc_gsm8k",
                 "rank_gsm8k", "rank_shift"]].sort_values("rank_mmlu")
 
 
@@ -256,6 +276,9 @@ def analyze(df: pd.DataFrame) -> None:
     acc.to_csv(RES / "accuracy.csv", index=False)
     fig_saturation(acc)
 
+    cov = coverage(df)
+    cov.to_csv(RES / "coverage.csv", index=False)
+
     gap = metric_gap(df)
     gap.to_csv(RES / "metric_gap.csv", index=False)
     fig_metric_gap(gap)
@@ -284,10 +307,18 @@ def analyze(df: pd.DataFrame) -> None:
     print(gap.to_string(index=False))
     print("\n=== MMLU robustness (original vs perturbed) ===")
     print(rob.to_string(index=False))
+    print("\n=== Answer-extraction coverage (1.0 = every item parsed) ===")
+    print(cov.to_string(index=False))
     if not rank.empty:
         rho = _spearman(list(rank["rank_mmlu"]), list(rank["rank_gsm8k"]))
-        print("\n=== Ranking across benchmarks (Spearman rho = "
-              f"{rho:.2f}; 1.0 = identical order) ===")
+        # weight-matched view: drop the small (<3B) rung so a size gap can't be
+        # mistaken for a family effect in the ranking comparison
+        peer = rank[rank["params_b"] >= 3.0].copy()
+        peer["rank_mmlu"] = peer["acc_mmlu"].rank(ascending=False, method="min").astype(int)
+        peer["rank_gsm8k"] = peer["acc_gsm8k"].rank(ascending=False, method="min").astype(int)
+        rho_peer = _spearman(list(peer["rank_mmlu"]), list(peer["rank_gsm8k"]))
+        print(f"\n=== Ranking across benchmarks (Spearman rho all={rho:.2f}, "
+              f"~4B peers only={rho_peer:.2f}; 1.0 = identical order) ===")
         print(rank.to_string(index=False))
     if not subj.empty:
         print("\n=== MMLU per-subject spread (top/bottom 5) ===")
