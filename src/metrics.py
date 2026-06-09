@@ -7,12 +7,15 @@ Two benchmarks, two scoring concerns the tutorial cares about:
     the score. We extract robustly and keep a flag for "letter was present but
     not at position 0", to quantify how much a naive grader would have lost.
 
-  * GSM8K -- numeric answer extraction. We implement TWO graders on purpose:
-        gsm8k_naive  : compare the last *line* verbatim to the gold number.
-        gsm8k_robust : pull the last number, strip $/,/% and trailing punct,
-                       compare numerically (42 == 42.0 == "42").
-    The gap between them is the demo's "metric != construct" evidence: the model
-    can be *right* and still fail a brittle metric.
+  * GSM8K -- numeric answer extraction. We implement TWO graders that differ in
+    ONE decision, the position heuristic, with identical numeric normalization:
+        gsm8k_naive  : take the FIRST number in the output. This is the classic
+                       real-world bug (`re.search(r"\\d+", text)`); in a chain of
+                       thought the first number is an intermediate value.
+        gsm8k_robust : take the LAST number.
+    Because normalization is shared, the gap is caused purely by *which number
+    the metric picks*, not by formatting -- clean "metric != construct" evidence:
+    the model can be right and the grader still scores it wrong.
 """
 
 from __future__ import annotations
@@ -66,7 +69,7 @@ def _to_float(token: str) -> float | None:
 
 
 def extract_number_robust(text: str) -> float | None:
-    """Last number in the text, currency/percent/comma tolerated."""
+    """LAST number in the text, currency/percent/comma tolerated."""
     if not text:
         return None
     nums = _NUM.findall(text)
@@ -77,21 +80,23 @@ def extract_number_robust(text: str) -> float | None:
     return None
 
 
-def extract_number_naive(text: str) -> str | None:
-    """Deliberately brittle: the last non-empty line, verbatim.
-
-    This is the kind of one-line grader people actually ship. "The answer is
-    $42." -> "The answer is $42." which will not string-equal "42".
+def extract_number_naive(text: str) -> float | None:
+    """FIRST number in the text -- same normalization as robust, only the
+    position differs. Mirrors the everyday `re.search(r"\\d+", out)` grader.
     """
     if not text:
         return None
-    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
-    return lines[-1] if lines else None
+    for tok in _NUM.findall(text):
+        val = _to_float(tok)
+        if val is not None:
+            return val
+    return None
 
 
 def gsm8k_score_naive(item: dict, prediction: str) -> bool:
     pred = extract_number_naive(prediction)
-    return pred is not None and pred == item["answer"]
+    gold = _to_float(item["answer"])
+    return pred is not None and gold is not None and abs(pred - gold) < 1e-6
 
 
 def gsm8k_score_robust(item: dict, prediction: str) -> bool:

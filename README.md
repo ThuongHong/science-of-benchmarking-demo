@@ -11,10 +11,10 @@ tin không**.
 | Thành phần | Lựa chọn |
 |---|---|
 | Benchmark | **MMLU** (kiến thức, trắc nghiệm 4 đáp án) + **GSM8K** (toán reasoning) |
-| Model | **Gemma-4 E2B-it** và **E4B-it** (cùng họ, 2 cỡ; chạy free Colab T4 4-bit) |
+| Model | 5 model nhỏ: **Gemma-4 E2B/E4B** (ladder cùng họ) + **Qwen3.5-4B / Phi-3.5-mini / Qwen2.5-3B** (panel ~4B khác họ); tất cả chạy 1 T4 free 4-bit |
 | Baseline | random, majority-class (non-LLM) |
 | Backend | Hugging Face `transformers`, 4-bit, **greedy → deterministic** |
-| Chạy ở đâu | Notebook Colab (T4 free) — `notebook/benchmark_demo.ipynb` |
+| Chạy ở đâu | Notebook Kaggle (T4 free) — `notebook/2_run_all.ipynb` |
 
 ## Demo liên hệ 6 paper thế nào
 
@@ -29,18 +29,28 @@ tin không**.
 
 ## Năm phân tích (mỗi cái = một luận điểm tutorial)
 
-1. **Saturation** — accuracy MMLU vs GSM8K. Khi model mạnh dồn cục sát trần ở một
-   benchmark, nó hết phân biệt được → lý do GLUE phải nhường SuperGLUE.
+1. **Saturation / scaling** — accuracy MMLU vs GSM8K theo cỡ model (E2B → E4B →
+   26B). Khi model mạnh dồn cục sát trần ở một benchmark, nó hết phân biệt được →
+   lý do GLUE phải nhường SuperGLUE.
 2. **Baseline soi điểm** — model thật phải vượt random (MMLU ≈ 0.25) và majority
    class một khoảng rộng, nếu không thì điểm chỉ là may rủi.
-3. **Metric giòn** (GSM8K) — chạy **hai** bộ chấm trên *cùng output*:
-   `naive` (so nguyên dòng cuối) vs `robust` (trích số cuối, bỏ `$ , %`). Cột
-   `n_robust_only` = số câu model trả lời **đúng** nhưng bộ chấm giòn đánh trượt.
-   Đây là bằng chứng *metric ≠ construct*.
-4. **Robustness** (MMLU) — mỗi câu có một "bản sinh đôi" bị nhiễu giữ nhãn
-   (đảo vị trí đáp án / chèn "None of the above"); so accuracy gốc vs nhiễu.
-5. **Contamination / construct validity** — thảo luận định tính trong báo cáo
-   (rò rỉ dữ liệu của benchmark cũ, ý nghĩa của "MMLU accuracy").
+3. **Rank-instability (panel ~4B khác họ)** — `ranking.csv` xếp hạng các model
+   trên MMLU và GSM8K *riêng*. Nếu thứ tự **lật** (Spearman ρ < 1) → không một
+   benchmark / một con số nào "xếp hạng model"; chính benchmark chọn người thắng.
+   Hình `model_agreement.png` (scatter MMLU×GSM8K) cho thấy lệch khỏi đường chéo.
+3. **Metric giòn** (GSM8K) — chạy **hai** bộ chấm khác **đúng một quyết định**:
+   `naive` lấy **số ĐẦU tiên** (lỗi thực tế kinh điển `re.search(r"\d+")` → trúng
+   số trung gian trong chuỗi suy luận) vs `robust` lấy **số CUỐI**; chuẩn hoá số
+   y hệt nhau. Cột `n_robust_only` = số câu model **đúng** mà bộ chấm giòn đánh
+   trượt — `metric_gap_examples.csv` in ví dụ cụ thể. Bằng chứng *metric ≠ construct*.
+4. **Per-subject (construct validity)** — `mmlu_by_subject.csv` tách accuracy theo
+   từng môn. Một con số "MMLU accuracy" che giấu chênh lệch lớn giữa môn (marketing
+   cao ↔ moral_scenarios ~ random) → "MMLU" không phải một construct đồng nhất.
+5. **Robustness** (MMLU) — mỗi câu có "bản sinh đôi" nhiễu giữ nhãn (đảo vị trí
+   đáp án / chèn "None of the above"); so accuracy gốc vs nhiễu. Drop ≈ 0 cũng là
+   tín hiệu: model không bám chuỗi test verbatim → ít dấu hiệu **contamination** bề mặt.
+6. **Contamination / construct** — thảo luận thêm trong báo cáo (rò rỉ dữ liệu
+   benchmark cũ), neo vào kết quả robustness ở trên.
 
 ## Cấu trúc repo
 
@@ -49,20 +59,25 @@ tin không**.
 ├── README.md
 ├── requirements.txt
 ├── notebook/
-│   ├── benchmark_demo_kaggle.ipynb  # entry Kaggle (T4 x2): Run all -> số + hình
-│   └── benchmark_demo.ipynb         # entry Colab (T4 đơn)
+│   ├── 1_smoke_test.ipynb          # test nhanh 1 model trước khi chạy full
+│   ├── 2_run_all.ipynb             # chạy đủ 5 model -> số + hình
+│   └── 3_add_and_compare.ipynb     # incremental: chạy model mới + merge + analyze
 ├── src/
 │   ├── config.py               # cỡ subset + danh sách system
 │   ├── data.py                 # tải MMLU + GSM8K (subset cố định seed) -> data/*.jsonl
-│   ├── metrics.py              # MMLU letter-match; GSM8K naive vs robust
+│   ├── metrics.py              # MMLU letter-match; GSM8K first-number vs last-number
 │   ├── perturb.py              # sinh đôi MMLU: option_shuffle / distractor
-│   ├── models.py               # GemmaRunner (transformers) + baseline + cache + FakeRunner
+│   ├── models.py               # HFRunner (transformers) + baseline + cache + FakeRunner
 │   ├── evaluate.py             # vòng chạy -> results/per_item.csv
-│   └── analysis.py             # 5 bảng + 3 hình
+│   └── analysis.py             # bảng + 4 hình + ví dụ định tính
 ├── data/                       # subset benchmark đã cache (sinh khi chạy)
 └── results/
     ├── per_item.csv            # từng câu, đúng/sai, đáp án trích
     ├── accuracy.csv            # MMLU vs GSM8K theo system (+ baseline)
+    ├── ranking.csv             # thứ hạng MMLU vs GSM8K (rank-instability)
+    ├── mmlu_by_subject.csv     # accuracy theo môn (construct variance)
+    ├── metric_gap_examples.csv # câu đúng bị naive grader đánh trượt
+    ├── error_analysis.csv      # mọi câu sai (phân tích định tính)
     ├── metric_gap.csv          # GSM8K naive vs robust
     ├── robustness.csv          # MMLU gốc vs nhiễu
     └── figures/*.png           # saturation, metric_gap, robustness
@@ -70,21 +85,19 @@ tin không**.
 
 ## Cách chạy
 
-### A. Kaggle (khuyến nghị — `T4 x2` free, chạy được cả rung 26B)
+### A. Kaggle — chạy đủ 5 model (khuyến nghị)
 
-1. Mở `notebook/benchmark_demo_kaggle.ipynb`. **Settings → Accelerator → `GPU T4 x2`**, **Internet → On**.
+1. Mở `notebook/2_run_all.ipynb`. **Settings → Accelerator → `GPU T4`**, **Internet → On**.
 2. **Add-ons → Secrets →** thêm secret `HF_TOKEN` (HF read token). Accept licence
-   Gemma tại <https://huggingface.co/google/gemma-4-E4B-it>.
-3. Sửa `REPO_URL` (cell 1) thành link repo này (hoặc attach repo làm Kaggle Dataset).
-4. Đặt `ADD_26B = True` (cell 5) nếu muốn thêm rung **26B-A4B MoE** (cần T4×2).
-5. **Run all.** Greedy → bấm lại ra **đúng số**.
+   Gemma tại <https://huggingface.co/google/gemma-4-E4B-it> (các model khác ungated).
+3. `REPO_URL` (cell 1) đã trỏ repo này.
+4. **Run all.** Greedy → bấm lại ra **đúng số**. (~1.5–2h cho 5 model.)
 
-### B. Colab (T4 đơn — chỉ E2B + E4B)
+### B. Kaggle — thêm model & tổng hợp (incremental)
 
-1. Mở `notebook/benchmark_demo.ipynb`. **Runtime → T4 GPU**.
-2. Sửa `REPO_URL` (cell 1) thành link repo này.
-3. Accept licence Gemma rồi dán HF token ở cell login.
-4. **Runtime → Run all.**
+Khi đã chạy vài model ở lần trước và chỉ muốn chạy **model mới** rồi gộp:
+`notebook/3_add_and_compare.ipynb` chạy `config.PEERS`, **merge** với `per_item.csv`
+cũ (attach dưới dạng Kaggle Dataset), rồi chạy lại toàn bộ analysis cho cả panel.
 
 ### C. Máy có GPU NVIDIA ≥ 8GB
 
@@ -109,8 +122,7 @@ chạy được trên máy không GPU; **số liệu sinh ra không dùng để 
 
 ## Kết quả thật
 
-> _Điền sau khi chạy `notebook/benchmark_demo.ipynb` trên Colab (T4)._
-> _Không khai số liệu chưa chạy._
+> _Điền sau khi chạy notebook Kaggle. Không khai số liệu chưa chạy._
 
 **Accuracy MMLU vs GSM8K** (`results/accuracy.csv`):
 
@@ -118,6 +130,9 @@ chạy được trên máy không GPU; **số liệu sinh ra không dùng để 
 |---|---|---|
 | gemma-4-e4b | … | … |
 | gemma-4-e2b | … | … |
+| qwen3.5-4b | … | … |
+| phi-3.5-mini | … | … |
+| qwen2.5-3b | … | … |
 | baseline-majority | … | … |
 | baseline-random | … | … |
 
@@ -138,7 +153,8 @@ chạy được trên máy không GPU; **số liệu sinh ra không dùng để 
 
 - Subset nhỏ (150 MMLU + 80 GSM8K) → khoảng tin cậy rộng; mục tiêu là *minh hoạ
   vấn đề benchmark*, không xếp hạng tuyệt đối.
-- Chỉ hai cỡ Gemma-4 chạy được trên T4 free; rung lớn hơn (26B MoE) cần Kaggle/A100.
+- Ba model nhỏ (E2B/E4B/Qwen3.5-4B) chạy T4 free; rung lớn hơn (Qwen3.5-9B…) cần
+  Kaggle T4×2/A100. Qwen3.5 chạy ở chế độ tắt thinking để answer trực tiếp.
 - `naive` grader cố tình làm giòn để phơi bày; nhưng đó đúng là kiểu chấm một dòng
   hay gặp ngoài thực tế.
 - MMLU/GSM8K là benchmark cũ, có nguy cơ nhiễm dữ liệu huấn luyện → bàn ở mục

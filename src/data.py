@@ -73,6 +73,12 @@ def load_mmlu(n: int = 150, seed: int = 0) -> list[dict]:
     for subj in subjects:
         idxs = by_subject[subj]
         picked.extend(rng.sample(idxs, min(per, len(idxs))))
+    # `per = n // n_subjects` rounds down (57 subjects, n=150 -> 2 each -> 114),
+    # so top up with random extras until we actually hit n.
+    if len(picked) < n:
+        pool = list(set(range(len(ds))) - set(picked))
+        rng.shuffle(pool)
+        picked.extend(pool[:n - len(picked)])
     rng.shuffle(picked)
     picked = picked[:n]
 

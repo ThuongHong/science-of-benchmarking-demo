@@ -6,7 +6,7 @@ coin flip -- that symmetry is the point of having baselines (Measuring what
 Matters): a benchmark score only means something if real models clear the dumb
 baselines by a wide margin.
 
-  GemmaRunner   : Hugging Face transformers, 4-bit, greedy (deterministic).
+  HFRunner      : Hugging Face transformers, 4-bit, greedy (deterministic).
   BaselineRunner: random / majority-class / constant answer.
   FakeRunner    : a seeded stand-in so the *pipeline* can be tested on a machine
                   with no GPU. It is NOT used for reported results.
@@ -110,11 +110,19 @@ class BaselineRunner:
 # --------------------------------------------------------------------------- #
 # real model
 # --------------------------------------------------------------------------- #
-class GemmaRunner:
-    """Gemma-4 instruction model via transformers, 4-bit, greedy decoding."""
+class HFRunner:
+    """Any HF instruction CausalLM via transformers, 4-bit, greedy decoding.
+
+    chat_template_kwargs carries model-specific switches, e.g.
+    {"enable_thinking": False} for Qwen3.x reasoning models so they answer
+    directly instead of emitting a long <think> trace that would blow the token
+    budget (and look like an empty answer).
+    """
 
     def __init__(self, name: str, model_id: str, max_new_tokens: int = 512,
-                 load_in_4bit: bool = True):
+                 load_in_4bit: bool = True,
+                 chat_template_kwargs: dict | None = None,
+                 trust_remote_code: bool = False):
         import torch
         from transformers import (AutoModelForCausalLM, AutoTokenizer,
                                    BitsAndBytesConfig)
@@ -122,15 +130,17 @@ class GemmaRunner:
         self.name = name
         self.model_id = model_id
         self.max_new_tokens = max_new_tokens
+        self.chat_template_kwargs = chat_template_kwargs or {}
         self.cache = _Cache(name)
 
         quant = (BitsAndBytesConfig(load_in_4bit=True,
                                     bnb_4bit_compute_dtype=torch.float16)
                  if load_in_4bit else None)
-        self.tok = AutoTokenizer.from_pretrained(model_id)
+        self.tok = AutoTokenizer.from_pretrained(
+            model_id, trust_remote_code=trust_remote_code)
         self.model = AutoModelForCausalLM.from_pretrained(
             model_id, device_map="auto", torch_dtype=torch.float16,
-            quantization_config=quant)
+            quantization_config=quant, trust_remote_code=trust_remote_code)
         self.model.eval()
 
     def predict(self, item: dict) -> str:
@@ -147,7 +157,7 @@ class GemmaRunner:
         # newer transformers no longer return a bare tensor here.
         enc = self.tok.apply_chat_template(
             messages, add_generation_prompt=True, return_tensors="pt",
-            return_dict=True).to(self.model.device)
+            return_dict=True, **self.chat_template_kwargs).to(self.model.device)
         input_len = enc["input_ids"].shape[1]
         with torch.no_grad():
             out = self.model.generate(
@@ -218,11 +228,13 @@ def make_system(s: dict):
     offload that 4-bit bitsandbytes refuses.
     """
     kind = s["kind"]
-    if kind == "gemma":
-        return GemmaRunner(
+    if kind in ("gemma", "hf"):           # both are HF instruction CausalLMs
+        return HFRunner(
             s["name"], s["model_id"],
             max_new_tokens=s.get("max_new_tokens", 512),
-            load_in_4bit=s.get("load_in_4bit", True))
+            load_in_4bit=s.get("load_in_4bit", True),
+            chat_template_kwargs=s.get("chat_template_kwargs"),
+            trust_remote_code=s.get("trust_remote_code", False))
     if kind == "baseline":
         return BaselineRunner(s["baseline"])
     if kind == "fake":
