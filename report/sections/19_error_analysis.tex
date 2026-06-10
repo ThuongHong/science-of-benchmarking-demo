@@ -1,0 +1,64 @@
+\section{Kết quả định tính, phân tích lỗi và nhận xét từ demo}
+\label{sec:error}
+
+Bên cạnh các con số, demo xuất hai tệp định tính: \texttt{error\_analysis.csv}
+(mọi câu sai, kèm đầu ra thô) và \texttt{metric\_gap\_examples.csv} (các câu mô
+hình \emph{đúng} nhưng bộ chấm giòn đánh trượt). Phần này phân tích các \emph{kiểu
+lỗi} và rút ra nhận xét.
+
+\subsection{Lỗi của \emph{phép đo}, không phải của mô hình}
+
+Đáng chú ý nhất là loại ``lỗi'' \emph{không phải} của mô hình mà của \emph{cách
+chấm}. Xét câu \texttt{gsm8k\_0000} (đáp án đúng = 100). Mô hình suy luận:
+
+\begin{quote}\small\itshape
+``\ldots Trường chi trả một nửa tổng chi phí. Phần trường trả $= \$300 \times
+\tfrac{1}{2} = \$150$\ldots'' $\Rightarrow$ \ldots $\Rightarrow$ đáp số cuối $= 100$.
+\end{quote}
+
+Bộ chấm \emph{robust} lấy số \emph{cuối} ($100$) $\Rightarrow$ \textbf{đúng}. Bộ
+chấm \emph{naive} lấy số \emph{đầu} (\$300 hoặc \$150 --- một số trung gian)
+$\Rightarrow$ \textbf{sai}. Mô hình không hề sai; lớp \texttt{re.search(r"\textbackslash
+d+")} ngây thơ mới sai. Trên toàn tập, kiểu này chiếm \textbf{58--77/80 câu} mỗi
+model (Bảng~\ref{tab:metricgap}). Bài học: với benchmark đầu ra dài, \emph{lớp trích
+xuất/chấm} là chỗ dễ hỏng nhất --- đúng lý do SWE-bench chọn chấm bằng \emph{thực
+thi test} thay vì so chuỗi.
+
+\subsection{Lỗi format vs lỗi kiến thức (coverage)}
+
+Một số câu MMLU ``sai'' thực ra là \emph{không trích được đáp án}: mô hình diễn giải
+dài dòng, lảng tránh, hoặc không nêu rõ một chữ cái \texttt{A/B/C/D}. Coverage MMLU
+0.945--0.99 cho thấy 1--5\% câu rơi vào loại này tuỳ model. Gộp chung loại lỗi
+format với loại sai kiến thức vào một con số ``accuracy'' sẽ \emph{trộn} hai nguồn
+sai có bản chất khác nhau --- và nhiễu này \emph{lệch theo model}.
+
+\subsection{Lỗi do nhiễu bề mặt (robustness)}
+
+Trên bản nhiễu giữ nhãn, một số câu mô hình \emph{đúng ở bản gốc} lại \emph{sai} chỉ
+vì đảo vị trí đáp án hoặc thêm ``None of the above''. Vì nhãn không đổi, đây là bằng
+chứng mô hình \emph{một phần} dựa vào vị trí/format thay vì nội dung. Độ tụt
+0.06--0.18 (Bảng~\ref{tab:robust}) lượng hoá phần ``điểm ăn may theo bề mặt'' đó.
+
+\subsection{Nhận xét tổng hợp từ demo}
+
+\begin{enumerate}
+  \item \textbf{Điểm số là \emph{có ý nghĩa} nhưng \emph{không tuyệt đối}}: mọi
+    model vượt xa baseline (có tín hiệu thật), nhưng nhiễm dữ liệu khiến điểm GSM8K
+    không nên đọc như năng lực suy luận thuần.
+  \item \textbf{Không một benchmark nào xếp hạng được model}: $\rho = 0.14$
+    (toàn bộ) và $\rho = 0.0$ ($\geq 3$B) cho thấy thứ hạng phụ thuộc \emph{lựa
+    chọn benchmark}; model to nhất vẫn có thể bét bảng ở một construct.
+  \item \textbf{Metric $\neq$ construct}: một quyết định cài đặt nhỏ trong lớp chấm
+    đổi điểm từ 0.96 xuống 0.00 --- benchmark dễ sai ở \emph{cách chấm} hơn ở
+    \emph{câu hỏi}.
+  \item \textbf{``MMLU accuracy'' là một số gộp}: phương sai theo môn rất lớn nên
+    một con số tổng che giấu việc đo nhiều construct khác nhau.
+  \item \textbf{Đo lường luôn có nhiễu lệch}: coverage và robustness cho thấy điểm
+    bị nhiễu bởi format và bề mặt, và nhiễu này khác nhau giữa các model.
+\end{enumerate}
+
+Tất cả các nhận xét trên đều khớp với khung \emph{construct validity}
+(\cite{measuring_what_matters}) và bộ tiêu chí \emph{BetterBench}
+(\cite{betterbench}): một demo nhỏ, khi soi đúng chỗ, đủ để cho thấy
+\emph{bản thân phép đo} mới là đối tượng cần được đánh giá --- đúng thông điệp
+``What's Measured, What's Missing, What's Next'' của tutorial.

@@ -1,0 +1,73 @@
+\section{Dataset sử dụng trong demo}
+\label{sec:dataset}
+
+\subsection{Hai benchmark công khai}
+
+Demo dùng hai benchmark thật, đại diện cho hai \emph{construct} khác nhau:
+
+\begin{itemize}
+  \item \textbf{MMLU}~\cite{hendrycks2021mmlu} (Massive Multitask Language
+    Understanding) --- đo \emph{kiến thức/hiểu biết} qua trắc nghiệm 4 đáp án trải
+    trên 57 môn (từ toán, luật, y đến đạo đức). Mỗi câu có đúng một đáp án
+    \texttt{A/B/C/D}.
+  \item \textbf{GSM8K}~\cite{cobbe2021gsm8k} (Grade-School Math 8K) --- đo
+    \emph{suy luận toán} qua bài toán đố tiểu học; đáp án là một \emph{số} cuối
+    cùng, lời giải nhiều bước.
+\end{itemize}
+
+Việc chọn \emph{hai} construct là có chủ đích: nó cho phép kiểm tra luận điểm
+trung tâm của tutorial --- \emph{một benchmark không xếp hạng được model};
+liệu thứ hạng trên MMLU và GSM8K có khớp nhau không (Phần~\ref{sec:results}).
+
+\subsection{Lấy mẫu cố định theo seed}
+
+Để demo tái lập được trên máy free (T4), nhóm lấy \emph{tập con} cố định
+thay vì toàn bộ benchmark:
+
+\begin{table}[t]
+\centering
+\caption{Tham số lấy tập con benchmark cho demo (cố định, ghi trong
+\texttt{config.py}).}
+\label{tab:subset}
+\small
+\begin{tabular}{lcc}
+\hline
+\textbf{Tham số} & \textbf{Ký hiệu} & \textbf{Giá trị} \\
+\hline
+Số câu MMLU & \texttt{N\_MMLU} & 150 \\
+Số câu GSM8K & \texttt{N\_GSM8K} & 80 \\
+Số câu MMLU được sinh nhiễu & \texttt{N\_PERTURB} & 50 \\
+Seed cố định & \texttt{SEED} & 0 \\
+\hline
+\end{tabular}
+\end{table}
+
+MMLU được lấy \emph{phân tầng} (stratified) trên cả 57 môn rồi bù thêm cho đủ 150
+câu, tránh việc một vài môn lấn át. Mọi item và thứ tự được ghi ra
+\texttt{data/*.jsonl}, nên \emph{bất kỳ ai chạy lại đều nhận đúng cùng tập câu, cùng
+thứ tự}. Đây là yêu cầu \emph{reproducibility} của BetterBench được thực thi ở mức
+dữ liệu.
+
+\subsection{Bản sinh đôi nhiễu (perturbation)}
+
+Lấy cảm hứng từ tinh thần SuperGLUE (ra đề khó hơn khi đề cũ bão hoà), mỗi câu MMLU
+trong tập 50 câu có một \emph{bản sinh đôi giữ nhãn}: nội dung và đáp án đúng không
+đổi, chỉ thay đổi bề mặt theo một trong hai phép:
+
+\begin{itemize}
+  \item \texttt{option\_shuffle}: đảo vị trí các lựa chọn (đáp án đúng đổi chữ cái
+    nhưng vẫn là cùng nội dung) --- bắt mô hình ``đoán theo vị trí'' sẽ lộ.
+  \item \texttt{distractor}: chèn thêm lựa chọn ``None of the above'' --- tăng
+    nhiễu mà không đổi đáp án đúng.
+\end{itemize}
+
+Nếu accuracy tụt mạnh giữa bản gốc và bản nhiễu, điểm gốc một phần dựa vào
+\emph{format/vị trí} chứ không thuần kiến thức (xem Phần~\ref{sec:results}).
+
+\subsection{Phạm vi và giới hạn của dataset}
+
+Tập con nhỏ (150 + 80) khiến khoảng tin cậy rộng; mục tiêu là \emph{minh hoạ vấn
+đề đo lường}, không phải xếp hạng tuyệt đối. Quan trọng hơn, cả MMLU (2021) và
+GSM8K (2021) gần như chắc đã nằm trong dữ liệu huấn luyện của các model hiện đại
+--- một nguồn \emph{nhiễm dữ liệu} mà demo \emph{cố ý} giữ lại để phơi bày, chứ
+không che giấu (Phần~\ref{sec:results}).

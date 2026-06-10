@@ -1,0 +1,62 @@
+% ===========================================================================
+% File: sections/02_background.tex
+% Phần 2: Bối cảnh và động lực của AI benchmarking
+% Thuộc tutorial: The Science of Benchmarking — What's Measured, What's Missing, What's Next
+% Thành viên 1: Nền tảng benchmarking và câu hỏi "Benchmark đo cái gì?"
+% ===========================================================================
+
+\section{Bối cảnh và động lực của AI benchmarking}
+\label{sec:background}
+
+\subsection{Vì sao AI/ML cần benchmark?}
+
+Benchmark ra đời từ nhu cầu thực tiễn: cung cấp một khung tham chiếu chung để so sánh hiệu năng giữa các phương pháp khác nhau trên cùng một tác vụ. Trước khi benchmark được sử dụng rộng rãi trong ML, việc đánh giá thuật toán thường thiếu tính nhất quán --- mỗi nhóm nghiên cứu sử dụng dữ liệu riêng, protocol riêng và metric riêng, khiến việc so sánh kết quả trở nên khó khăn, thậm chí vô nghĩa~\cite{everything_benchmark}.
+
+Mô hình Common Task Framework (CTF), được phát triển từ thập niên 1980 dưới sự dẫn dắt của Fred Jelinek (IBM) và Charles Wayne (DARPA), đã thiết lập nền tảng cho benchmarking hiện đại. CTF bao gồm ba thành phần chính: (a) tập dữ liệu huấn luyện công khai với nhãn, (b) một nhóm người tham gia cùng giải quyết tác vụ chung, và (c) một trọng tài chấm điểm để đánh giá kết quả~\cite{everything_benchmark}. Với CTF, thay vì chỉ cập nhật kết quả thực nghiệm ``hai lần mỗi năm'', các nhà nghiên cứu có thể đánh giá thí nghiệm hàng giờ và theo dõi tiến bộ liên tục.
+
+Trong bối cảnh hiện đại, benchmark phục vụ nhiều mục đích quan trọng:
+
+\begin{itemize}
+    \item \textbf{Chuẩn hóa so sánh}: Benchmark cung cấp tập dữ liệu, tác vụ và metric thống nhất, cho phép cộng đồng so sánh công bằng giữa các mô hình.
+    \item \textbf{Theo dõi tiến bộ}: Bảng xếp hạng (leaderboard) dựa trên benchmark giúp theo dõi sự cải thiện hiệu năng theo thời gian.
+    \item \textbf{Lựa chọn mô hình}: Kết quả benchmark hỗ trợ quyết định lựa chọn mô hình cho các ứng dụng cụ thể.
+    \item \textbf{Định hướng nghiên cứu}: Benchmark ảnh hưởng mạnh đến hướng phát triển thuật toán và phân bổ nguồn lực nghiên cứu của cả lĩnh vực~\cite{everything_benchmark}.
+\end{itemize}
+
+\subsection{Mặt trái của benchmarking}
+
+Mặc dù có vai trò không thể phủ nhận, benchmarking tiềm ẩn nhiều rủi ro nghiêm trọng khi bị sử dụng hoặc diễn giải không đúng cách.
+
+\subsubsection{Leaderboard chasing và tối ưu hóa quá mức}
+
+Việc chạy đua đạt điểm số ``state-of-the-art'' (SOTA) trên benchmark --- hay \textit{leaderboard chasing} --- là một hiện tượng phổ biến trong cộng đồng ML. Saitta đã từ năm 1995 chỉ trích rằng benchmark chasing ``cho phép các nhà nghiên cứu công bố những bài báo nhàm chán, đề xuất các biến thể nhỏ của thuật toán học có giám sát hiện có và báo cáo những cải thiện hiệu năng nhỏ nhưng có ý nghĩa thống kê''; Thomas và Uminsky còn xem việc chạy đua theo metric là một vấn đề đạo đức, cảnh báo rằng ``việc nhấn mạnh quá mức vào metric dẫn đến thao túng, gaming, tập trung thiển cận vào mục tiêu ngắn hạn và các hậu quả tiêu cực không mong đợi khác''~\cite{everything_benchmark}.
+
+Hệ quả của leaderboard chasing là cộng đồng có xu hướng tối ưu hóa quá mức (\textit{overfitting}) trên một benchmark cụ thể, thay vì cải thiện năng lực thực sự của mô hình. Khi cả lĩnh vực tập trung vào một số ít benchmark, các kỹ thuật mới được phát triển sẽ đặc biệt phù hợp với các tác vụ đó, dẫn đến hiện tượng overfitting ở cấp độ cộng đồng~\cite{measuring_what_matters}.
+
+\subsubsection{Diễn giải sai điểm benchmark}
+
+Một rủi ro nghiêm trọng khác là việc diễn giải điểm benchmark vượt quá phạm vi thiết kế. Raji và cộng sự~\cite{everything_benchmark} chỉ ra rằng các benchmark như ImageNet hay GLUE, dù chỉ đo hiệu năng trên các tác vụ hẹp và cụ thể, lại thường được trình bày và chấp nhận như thước đo cho năng lực tổng quát, và dẫn ra ví dụ Microsoft năm 2021 tuyên bố rằng ``DeBERTa vượt qua hiệu năng con người trên SuperGLUE đánh dấu một cột mốc quan trọng hướng tới AI tổng quát''. Tuy nhiên, hiệu năng cao trên SuperGLUE --- một tập hợp các tác vụ phân loại câu và cặp câu trong tiếng Anh --- không tương đương với ``hiểu ngôn ngữ'' hay ``trí tuệ tổng quát''.
+
+Wagstaff~\cite{everything_benchmark} cũng cảnh báo rằng cùng một mức độ chính xác (ví dụ 80\%) có ý nghĩa hoàn toàn khác nhau trong các bối cảnh khác nhau: 80\% chính xác trong phân loại hoa iris có thể chấp nhận được, nhưng 80\% trong phân loại nấm ăn được hay nấm độc là hoàn toàn không đủ, và giả định về tính so sánh xuyên miền (cross-domain comparability) khi sử dụng cùng loại metric là một ``ảo ảnh''.
+
+\subsubsection{Benchmark như đại diện quá rộng cho năng lực AI}
+
+Benchmark ban đầu được thiết kế để đánh giá hiệu năng trên các tác vụ cụ thể, ứng dụng thực tiễn --- ví dụ nhận dạng giọng nói (ASR) hay dịch máy (MT)~\cite{everything_benchmark}. Tuy nhiên, xu hướng gần đây đã mở rộng không phù hợp mô hình CTF sang việc đo ``hiệu năng nói chung'' (\textit{performance in the abstract}), tách rời khỏi mục tiêu thực tế hay ngữ cảnh ứng dụng; Raji và cộng sự lập luận rằng mục tiêu đo năng lực tổng quát (general-purpose capabilities) không thể được hiện thực hóa đầy đủ trong các benchmark dựa trên dữ liệu, bởi dữ liệu luôn có phạm vi hữu hạn, mang tính chủ quan và bị giới hạn bởi bối cảnh~\cite{everything_benchmark}.
+
+\subsection{Goodhart's Law và benchmark}
+
+Mối quan hệ giữa benchmark và tối ưu hóa có thể được hiểu rõ hơn qua lăng kính của Goodhart's Law:
+
+\begin{quote}
+\textit{Khi một thước đo trở thành mục tiêu tối ưu hóa, nó có thể mất dần giá trị như một thước đo đáng tin cậy.}
+\end{quote}
+
+Trong bối cảnh AI benchmarking, hiện tượng này biểu hiện ở nhiều cấp độ. Ở cấp độ mô hình, khi một benchmark được sử dụng rộng rãi, nỗ lực liên tục cải thiện trên benchmark đó dẫn đến các kỹ thuật mới được phát triển đặc biệt phù hợp với tác vụ cụ thể đó, gây ra hiện tượng overfitting tương tự như việc sử dụng lặp lại tập validation~\cite{measuring_what_matters}. Ở cấp độ cộng đồng, benchmark ảnh hưởng đến bản chất của các phương pháp thuật toán được theo đuổi: trong thập niên 1960, cờ vua khiến cộng đồng AI tập trung quá mức vào deep-tree searching và thuật toán minimax; tương tự, ImageNet đã định hình cuộc cách mạng deep learning và GLUE đã trở thành nền tảng chứng minh cho BERT~\cite{everything_benchmark}.
+
+\subsection{Data contamination}
+
+\textit{Data contamination} --- hiện tượng dữ liệu đánh giá xuất hiện trong dữ liệu huấn luyện hoặc quá trình tinh chỉnh mô hình --- là một mối đe dọa nghiêm trọng đối với tính hợp lệ của kết quả benchmark. Bean và cộng sự~\cite{measuring_what_matters} nhấn mạnh rằng contamination có thể xảy ra ngay cả khi các nhà phát triển mô hình hành động thiện chí, bởi các tập dữ liệu benchmark công khai có khả năng cao đã xuất hiện trong các kho dữ liệu huấn luyện quy mô lớn; với các benchmark phổ biến như GSM8K, bằng chứng cho thấy contamination có thể đã góp phần làm tăng điểm số theo thời gian.
+
+\subsection{Tóm tắt: Benchmark vừa cần thiết, vừa cần thận trọng}
+
+Benchmark là công cụ thiết yếu trong nghiên cứu AI/ML, cho phép chuẩn hóa đánh giá, theo dõi tiến bộ và so sánh phương pháp. Tuy nhiên, giá trị của benchmark phụ thuộc vào cách nó được thiết kế, sử dụng và diễn giải. Khi benchmark bị đối xử như thước đo toàn diện cho ``trí tuệ'' hay ``tiến bộ AI nói chung'', nó trở thành nguồn gây hiểu lầm. Như Raji và cộng sự~\cite{everything_benchmark} kết luận, vấn đề không nằm ở bản thân benchmark, mà ở cách cộng đồng định khung và nâng tầm benchmark vượt quá phạm vi thiết kế ban đầu. Các phần tiếp theo sẽ đi sâu vào khung khái niệm cần thiết để hiểu rõ benchmark đo cái gì và không đo cái gì.

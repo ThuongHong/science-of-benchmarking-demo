@@ -1,0 +1,27 @@
+% ===========================================================================
+% File: sections/01_introduction.tex
+% Phần 1: Giới thiệu
+% Thuộc tutorial: The Science of Benchmarking — What's Measured, What's Missing, What's Next
+% Thành viên 1: Nền tảng benchmarking và câu hỏi "Benchmark đo cái gì?"
+% ===========================================================================
+
+\section{Giới thiệu}
+\label{sec:introduction}
+
+Benchmark đóng vai trò trung tâm trong quá trình phát triển và đánh giá các hệ thống trí tuệ nhân tạo (AI) và học máy (ML). Trong nghiên cứu, benchmark cung cấp khung tham chiếu chung để so sánh hiệu năng giữa các mô hình, theo dõi tiến bộ theo thời gian và xác định hướng đi cho các nỗ lực nghiên cứu tiếp theo. Benchmark cũng là công cụ không thể thiếu trong quy trình công bố kết quả khoa học: một mô hình được coi là ``state-of-the-art'' (SOTA) khi đạt điểm số cao nhất trên một hoặc nhiều benchmark được cộng đồng thừa nhận~\cite{everything_benchmark}. Trong bối cảnh các mô hình ngôn ngữ lớn (Large Language Models -- LLM) phát triển nhanh chóng, benchmark trở thành yếu tố then chốt để đánh giá năng lực, phát hiện rủi ro an toàn và hướng dẫn triển khai~\cite{measuring_what_matters}.
+
+Tuy nhiên, benchmark thường được sử dụng vượt xa phạm vi thiết kế ban đầu. Điểm số trên một benchmark cụ thể dễ dàng bị diễn giải như bằng chứng cho tiến bộ AI nói chung, thậm chí được xem như thước đo cho ``trí tuệ'' hay ``năng lực tổng quát'' của hệ thống. Raji và cộng sự~\cite{everything_benchmark} đã chỉ ra rằng nhiều benchmark phổ biến, dù chỉ đo hiệu năng trên một tập hữu hạn các tác vụ cụ thể, lại được cộng đồng nâng lên thành đại diện cho năng lực chung (\textit{general capabilities}). Điều này tương tự như việc một bảo tàng tuyên bố chứa ``mọi thứ trên thế giới'' nhưng thực tế chỉ trưng bày một số phòng với các vật phẩm được chọn tùy tiện. Bean và cộng sự~\cite{measuring_what_matters} bổ sung rằng giá trị thực sự của một benchmark phụ thuộc vào việc nó có phải là một \textit{proxy} tốt cho hiện tượng (phenomenon) mà nó định đo hay không --- một thuộc tính được gọi là \textit{construct validity}.
+
+Tutorial này --- \textit{The Science of Benchmarking: What's Measured, What's Missing, What's Next} --- nhằm phân tích một cách có hệ thống khoa học đằng sau benchmarking trong AI/ML. Luận điểm trung tâm của phần này là:
+
+\begin{summarybox}
+\textit{Benchmark không phải là thước đo tuyệt đối của trí tuệ hay năng lực tổng quát; benchmark là một công cụ đo lường có phạm vi, giả định, thiết kế và giới hạn diễn giải.}
+\end{summarybox}
+
+Từ luận điểm này, phần nền tảng của báo cáo sẽ đặt ra và trả lời câu hỏi trung tâm:
+
+\begin{summarybox}
+\textit{Benchmark thực sự đang đo cái gì?}
+\end{summarybox}
+
+Để trả lời câu hỏi trên, các phần tiếp theo sẽ trình bày bối cảnh và động lực của benchmarking trong AI (Phần~\ref{sec:background}), các khái niệm nền tảng về benchmark và đo lường (Phần~\ref{sec:foundations}), vai trò của construct validity trong benchmark LLM (Phần~\ref{sec:construct_validity}), và phân tích cụ thể về những gì benchmark hiện nay thực sự đang đo (Phần~\ref{sec:whats_measured}).

@@ -1,0 +1,81 @@
+% ===========================================================================
+% File: sections/10_whats_missing.tex
+% Phần 10: What's Missing — Những hạn chế của benchmark hiện nay
+% Thuộc tutorial: The Science of Benchmarking — What's Measured, What's Missing, What's Next
+% Thành viên 2: Chất lượng benchmark, benchmark truyền thống và các vấn đề còn thiếu
+% Nguồn chính: BetterBench, GLUE, SuperGLUE và slides tutorial
+% ===========================================================================
+
+\section{What's Missing: Những hạn chế của benchmark hiện nay}
+\label{sec:whats-missing}
+
+Mặc dù benchmark đóng vai trò quan trọng trong việc đo lường tiến bộ AI, nhiều benchmark hiện nay vẫn tồn tại các hạn chế nghiêm trọng. Dựa trên phân tích từ BetterBench~\cite{betterbench}, GLUE~\cite{glue}, SuperGLUE~\cite{superglue} và khung phân tích của tutorial, các vấn đề còn thiếu có thể được chia thành bốn nhóm chính: \textit{data issues}, \textit{measurement issues}, \textit{systemic issues} và \textit{epistemic issues}. Bốn nhóm này cho thấy benchmark không chỉ gặp lỗi kỹ thuật, mà còn gặp lỗi trong cách thiết kế, sử dụng và diễn giải kết quả.
+
+\begin{summarybox}{Bốn nhóm hạn chế chính}
+\begin{itemize}
+    \item \textbf{Data issues}: dữ liệu lỗi, không đại diện, nhiễu nhãn, trùng lặp hoặc contamination.
+    \item \textbf{Measurement issues}: metric không đo đúng mục tiêu hoặc điểm tổng hợp che khuất khác biệt.
+    \item \textbf{Systemic issues}: leaderboard chasing, benchmark tĩnh và thiếu báo cáo uncertainty.
+    \item \textbf{Epistemic issues}: điểm benchmark bị diễn giải như bằng chứng cho năng lực tổng quát.
+\end{itemize}
+\end{summarybox}
+
+\subsection{Data issues}
+
+Nhóm vấn đề đầu tiên liên quan đến dữ liệu. Dữ liệu benchmark có thể chứa mẫu sai, nhãn nhiễu, câu hỏi mơ hồ, phân phối không đại diện hoặc trùng lặp giữa train và test.
+
+\begin{itemize}
+    \item \textbf{Dữ liệu nhiễu và artifact}: khi dữ liệu chứa nhiều lỗi, điểm số benchmark sẽ có trần nhiễu; ngay cả hệ thống tốt cũng khó đạt kết quả tối đa một cách có ý nghĩa. GLUE minh họa vấn đề này: Wang và cộng sự kiểm tra diagnostic set không chứa annotation artifact bằng cách huấn luyện fastText classifier chỉ dùng hypothesis, đạt accuracy gần chance (32.7\% và 36.4\%)~\cite{glue}. Việc kiểm tra này cần thiết vì ``\textit{crowdsourced data often contains artifacts which can be exploited to perform well without solving the intended task}''~\cite{glue}. WNLI trong GLUE cũng chứa adversarial train/dev split: các premise trong training set xuất hiện lại trong development set với hypothesis và nhãn khác, khiến mô hình ghi nhớ đạt kết quả dưới chance~\cite{superglue}.
+
+    \item \textbf{Shortcut}: nếu test set có nhiều pattern đơn giản, mô hình có thể đạt điểm cao nhờ khai thác shortcut thay vì hiểu thật sự. SuperGLUE trích dẫn nhiều nghiên cứu cho thấy ``\textit{the limitations of existing pretrained models}'' khi đối mặt với adversarial examples và stress tests~\cite{superglue}.
+
+    \item \textbf{Data contamination}: với các mô hình ngôn ngữ lớn, dữ liệu huấn luyện thường rất lớn và khó kiểm soát. BetterBench xác định contamination là một trong những thách thức mở lớn nhất: ``\textit{preventing data contamination, particularly in models reliant on large amounts of web-scraped data, is a shared responsibility between benchmark and model developers}''~\cite{betterbench}. Contamination đã được chứng minh ở cả foundation models và non-foundation models~\cite{betterbench}. BetterBench đánh giá các cơ chế chống contamination (globally unique identifiers, encryption of evaluation instances, canary strings) nhưng phát hiện chỉ rất ít benchmark triển khai chúng~\cite{betterbench}.
+
+    \item \textbf{Tối ưu quá mức}: benchmark tĩnh được công bố lâu ngày dễ bị cộng đồng tối ưu quá mức, khiến dữ liệu test mất dần tính độc lập. BetterBench ghi nhận rằng ``\textit{some benchmarks have been saturated within months of their release}''~\cite{betterbench}.
+\end{itemize}
+
+\subsection{Measurement issues}
+
+Nhóm vấn đề thứ hai liên quan đến đo lường. Một benchmark có thể có dữ liệu tốt nhưng metric không phù hợp.
+
+\begin{itemize}
+    \item \textbf{Metric quá đơn giản}: accuracy có thể không phản ánh đầy đủ chất lượng mô hình trong các task có nhiều mức độ đúng sai, dữ liệu mất cân bằng, hoặc yêu cầu giải thích. GLUE minh họa việc chọn metric phù hợp: dùng MCC cho CoLA (dữ liệu mất cân bằng), Pearson/Spearman cho STS-B (regression), accuracy và F1 cho MRPC và QQP (dữ liệu lệch)~\cite{glue}. SuperGLUE cũng chọn metric cẩn thận: F1 và exact match cho MultiRC và ReCoRD, accuracy và F1 cho CB (dữ liệu mất cân bằng)~\cite{superglue}.
+
+    \item \textbf{Single-number score}: điểm tổng hợp giúp leaderboard dễ đọc, nhưng có thể che khuất thông tin quan trọng. Trên GLUE, tất cả baseline đều đạt đúng 65.1 trên WNLI (majority class), có nghĩa task này không đóng góp tín hiệu nào vào leaderboard nhưng vẫn ảnh hưởng đến macro-average~\cite{glue}. SuperGLUE và GLUE đều sử dụng macro-average vì ``\textit{lacking a fair criterion with which to weight the contributions of each task}''~\cite{superglue}.
+
+    \item \textbf{Thiếu báo cáo uncertainty}: BetterBench phát hiện 14 trong 24 benchmark không chạy đánh giá nhiều lần trên cùng mô hình hoặc không báo cáo statistical significance hay uncertainty~\cite{betterbench}. Điểm trung bình cho tiêu chí ``báo cáo statistical significance'' chỉ đạt 5.62/15~\cite{betterbench}. Điều này nghiêm trọng vì nếu không phân biệt được intra-model variance (nhiễu khi chạy lại) và inter-model variance (khác biệt thật giữa mô hình), kết luận từ leaderboard có thể sai~\cite{betterbench}.
+
+    \item \textbf{Thiếu phân tích lỗi}: GLUE cung cấp diagnostic set phân tích hiệu năng theo từng hiện tượng ngôn ngữ, cho phép ``\textit{error analysis, qualitative model comparison, and development of adversarial examples}''~\cite{glue}. Tuy nhiên, hầu hết benchmark không có công cụ tương tự. SuperGLUE bổ sung Winogender để phân tích gender bias~\cite{superglue}, nhưng đây vẫn chỉ là hai diagnostic tool trong số hàng trăm benchmark tồn tại.
+\end{itemize}
+
+\subsection{Systemic issues}
+
+Nhóm vấn đề thứ ba là các vấn đề mang tính hệ thống.
+
+\begin{itemize}
+    \item \textbf{Goodhart's Law}: khi một thước đo trở thành mục tiêu, nó có thể không còn là thước đo tốt. BetterBench nhấn mạnh vấn đề gameability: ``\textit{an ideal benchmark is resilient to attempts to boost task performance without improving the fundamental capability being tested}''~\cite{betterbench}. Tuy nhiên, ``\textit{existing benchmarks have been shown to be vulnerable to manipulation}''~\cite{betterbench}.
+
+    \item \textbf{Benchmark tĩnh và saturation}: GLUE là ví dụ điển hình: benchmark quan trọng nhưng bị bão hòa trong chưa đầy hai năm, khi GLUE score của XLNet (88.4) vượt human performance (87.1)~\cite{superglue}. BetterBench thảo luận dynamic vs.\ static benchmarks nhưng lưu ý benchmark động ``\textit{reduce result comparability and are easier to implement for some tasks than others}''~\cite{betterbench}.
+
+    \item \textbf{Thiếu chuẩn hóa báo cáo benchmark}: BetterBench chỉ ra rằng ``\textit{model developers report whichever benchmarks they see fit without being obligated to provide a rationale, resulting in inconsistent reporting}''~\cite{betterbench}. Ví dụ, GPT-4, Claude-3 và Gemini đều báo cáo trên MMLU và GPQA mà không nêu rõ MMLU đạt điểm chất lượng thấp nhất (5.5) trong khi GPQA đạt điểm cao hơn đáng kể (11.0) theo đánh giá BetterBench~\cite{betterbench}.
+
+    \item \textbf{Thiếu tái lập}: BetterBench phát hiện giai đoạn implementation là yếu nhất (6.2/15): ``\textit{17 out of 24 benchmarks do not provide easy-to-run scripts to replicate the results reported in the initial paper}''~\cite{betterbench}. Trong lĩnh vực mà ``\textit{reproducibility is a significant concern}'', thiếu script tái lập ``\textit{hinders reproducibility and limits users' ability to scrutinize the benchmarking process}''~\cite{betterbench}.
+\end{itemize}
+
+\subsection{Epistemic issues}
+
+Nhóm vấn đề sâu hơn là các vấn đề nhận thức luận: benchmark thật sự cho ta biết điều gì? Một benchmark luôn là bản đồ rút gọn của thực tế. Nó chỉ đo một tập task cụ thể, với dữ liệu cụ thể và metric cụ thể.
+
+\begin{itemize}
+    \item \textbf{Không đồng nghĩa với năng lực tổng quát}: điểm cao trên benchmark không chứng minh mô hình có năng lực tốt trong mọi tình huống. SuperGLUE cho thấy rằng ngay cả khi mô hình vượt human baseline trên GLUE, hiệu năng trên diagnostic set vẫn rất thấp ($R_3 = 0.42$ so với human 0.80), đặc biệt với các hiện tượng như disjunction và downward monotonicity~\cite{superglue}.
+
+    \item \textbf{Construct validity}: BetterBench xác định ``\textit{poor construct validity}'' là một thách thức mở quan trọng. Construct validity là ``\textit{the degree to which a test or measurement tool accurately measures the construct it intends to measure}''~\cite{betterbench}. Một số thuộc tính (ví dụ: factual accuracy) ``\textit{arise from the interaction between the model and its user population, rather than from the model alone}''~\cite{betterbench}, khiến benchmark tĩnh khó đo lường chính xác.
+
+    \item \textbf{Diễn giải thận trọng}: GLUE diagnostic set được mô tả rõ ràng là ``\textit{not as a benchmark, but as an analysis tool}'' --- ``\textit{performance on the analysis set should be compared between models but not between categories}''~\cite{glue}. Sự thận trọng này cần được áp dụng rộng hơn cho toàn bộ kết quả benchmark.
+\end{itemize}
+
+\begin{summarybox}{Câu hỏi kiểm tra trước khi tin vào điểm số}
+Khi đọc kết quả benchmark, cần luôn hỏi: benchmark đang đo construct nào? Task có đại diện cho construct đó không? Metric có phản ánh đúng năng lực cần đo không? Kết quả có uncertainty không? Kết luận có bị diễn giải vượt quá phạm vi benchmark không? Benchmark có đủ chất lượng theo các tiêu chí BetterBench không?
+\end{summarybox}
+
+Tóm lại, những gì benchmark hiện nay còn thiếu không chỉ là thêm dữ liệu hay thêm task khó hơn. Điều quan trọng hơn là benchmark cần được thiết kế với tư duy đo lường cẩn thận: dữ liệu phải đáng tin, metric phải hợp lệ, kết quả phải có độ bất định, leaderboard phải tránh khuyến khích tối ưu sai mục tiêu, và diễn giải điểm số phải phù hợp với phạm vi thật sự của benchmark.

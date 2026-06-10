@@ -1,0 +1,62 @@
+% ===========================================================================
+% File: sections/06_benchmark_quality.tex
+% Phần 6: Benchmark tốt cần những tiêu chí nào?
+% Thuộc tutorial: The Science of Benchmarking — What's Measured, What's Missing, What's Next
+% Thành viên 2: Chất lượng benchmark, benchmark truyền thống và các vấn đề còn thiếu
+% Nguồn chính: BetterBench (Reuel et al., NeurIPS 2024), GLUE, SuperGLUE
+% ===========================================================================
+
+\section{Benchmark tốt cần những tiêu chí nào?}
+\label{sec:benchmark-quality}
+
+Các phần trước đã phân tích benchmark đo cái gì và vai trò của construct validity trong việc xác định ý nghĩa điểm số. Phần này chuyển sang câu hỏi bổ sung: làm thế nào để đánh giá chất lượng của chính benchmark? Một benchmark được dùng rộng rãi không tự động trở thành thước đo đáng tin cậy. Reuel và cộng sự~\cite{betterbench} chỉ ra rằng các mô hình như GPT-4~\cite{achiam2023gpt4}, Claude-3~\cite{anthropic2024claude3} và Gemini~\cite{team2023gemini} thường báo cáo kết quả trên nhiều benchmark mà không phân biệt rõ chất lượng khác nhau giữa chúng. Thực tế, benchmark MMLU --- một trong những benchmark được dùng phổ biến nhất --- đạt điểm chất lượng thấp nhất (weighted average: 5.5) trong đánh giá BetterBench, trong khi GPQA đạt điểm cao hơn đáng kể (weighted average: 11.0)~\cite{betterbench}.
+
+\begin{summarybox}{Tóm tắt tiêu chí benchmark tốt}
+\begin{itemize}
+    \item \textbf{Đo đúng thứ cần đo}: mục tiêu, task và metric phải thống nhất với nhau.
+    \item \textbf{Đáng tin khi chạy lại}: dữ liệu, code, môi trường và baseline cần được mô tả rõ.
+    \item \textbf{Không bị diễn giải quá mức}: điểm số chỉ có ý nghĩa trong phạm vi benchmark.
+    \item \textbf{Có vòng đời}: benchmark cần được theo dõi, cập nhật hoặc nghỉ hưu khi bão hòa.
+\end{itemize}
+\end{summarybox}
+
+\subsection{Các tiêu chí cốt lõi}
+
+Một benchmark có chất lượng cần thỏa mãn đồng thời nhiều điều kiện. Các tiêu chí dưới đây được tổng hợp từ khung đánh giá BetterBench~\cite{betterbench}, kết hợp với kinh nghiệm thiết kế từ GLUE~\cite{glue} và SuperGLUE~\cite{superglue}.
+
+\begin{itemize}
+    \item \textbf{Mục tiêu đo lường rõ ràng.} Nhà thiết kế benchmark phải xác định benchmark đang đo năng lực, hành vi hoặc thuộc tính nào của hệ thống. BetterBench yêu cầu benchmark phải nêu rõ ``construct'' và phạm vi sử dụng ngay từ giai đoạn thiết kế~\cite{betterbench}. Ví dụ, GLUE tuyên bố mục tiêu là đánh giá ``general language understanding'' thông qua chín tác vụ NLU đa dạng~\cite{glue}; SuperGLUE kế thừa mục tiêu này nhưng bổ sung tiêu chí rõ ràng hơn về độ khó và tính đa dạng của task~\cite{superglue}.
+
+    \item \textbf{Task và dữ liệu phù hợp với mục tiêu đo.} Dữ liệu phải đại diện cho loại tình huống mà benchmark muốn đánh giá. BetterBench nhấn mạnh rằng task cần được lựa chọn sao cho đại diện cho năng lực cần đo, không chỉ kiểm tra shortcut bề mặt~\cite{betterbench}. GLUE minh họa điều này bằng cách chọn các task từ nhiều domain khác nhau (news, Wikipedia, fiction, movie reviews) và bao gồm cả task có ít dữ liệu huấn luyện để khuyến khích khả năng tổng quát hóa~\cite{glue}. Dữ liệu cũng cần được kiểm soát để hạn chế trùng lặp, rò rỉ nhãn, nhiễu annotation và data contamination.
+
+    \item \textbf{Metric hợp lý.} Metric phải phản ánh đúng mục tiêu đánh giá. GLUE sử dụng accuracy cho hầu hết các task, nhưng dùng Matthews correlation cho CoLA (dữ liệu mất cân bằng) và Pearson/Spearman correlation cho STS-B (regression)~\cite{glue}. BetterBench yêu cầu benchmark phải giải thích lý do chọn metric và báo cáo statistical significance cho ít nhất một mô hình~\cite{betterbench}. Tuy nhiên, đánh giá trên 24 benchmark cho thấy điểm trung bình cho tiêu chí ``báo cáo statistical significance'' chỉ đạt 5.62/15~\cite{betterbench}.
+
+    \item \textbf{Tính tái lập.} Người khác phải có khả năng chạy lại benchmark và thu được kết quả tương tự. BetterBench phát hiện rằng 17 trong 24 benchmark được đánh giá không cung cấp script dễ chạy để tái lập kết quả báo cáo trong paper gốc, và 4 benchmark chỉ cung cấp script cho một phần kết quả~\cite{betterbench}. Giai đoạn implementation có điểm trung bình thấp nhất trong tất cả các giai đoạn vòng đời (6.2/15 cho tất cả benchmark)~\cite{betterbench}.
+
+    \item \textbf{Tính minh bạch và tài liệu hóa.} Tài liệu benchmark nên mô tả mục tiêu, phạm vi, nguồn dữ liệu, quy trình xây dựng dataset, metric, hạn chế, license và cách sử dụng. BetterBench nhấn mạnh rằng tài liệu hóa đầy đủ là yếu tố then chốt cho ``practicability'' và ``interpretation'' của benchmark~\cite{betterbench}. GLUE minh họa thực hành tốt khi cung cấp private test set, evaluation server, leaderboard và diagnostic set do chuyên gia xây dựng~\cite{glue}.
+
+    \item \textbf{Duy trì theo thời gian.} Một benchmark có thể hữu ích ở thời điểm được công bố nhưng trở nên lỗi thời khi mô hình ngày càng mạnh. BetterBench chỉ ra rằng benchmark cần có cơ chế kiểm tra code usability định kỳ, kênh phản hồi từ cộng đồng, thông tin liên hệ của người chịu trách nhiệm, và --- nếu không còn được duy trì --- một thông báo rõ ràng rằng benchmark đã được ``nghỉ hưu''~\cite{betterbench}. GLUE là ví dụ điển hình: khi mô hình vượt qua human baseline, nhóm phát triển đã chủ động tạo SuperGLUE như benchmark kế nhiệm~\cite{superglue}.
+\end{itemize}
+
+\subsection{Phân biệt tín hiệu và nhiễu trong benchmark}
+
+Một vấn đề mà BetterBench nêu bật là phần lớn benchmark hiện tại không phân biệt được tín hiệu thật và nhiễu. Cụ thể, nhà phát triển benchmark nên chạy đánh giá nhiều lần (ví dụ, với các random seed hoặc sampling temperature khác nhau) và báo cáo mean cùng variance cho các đánh giá intra-model~\cite{betterbench}. Nếu variance nội mô hình (intra-model) hẹp và variance giữa các mô hình (inter-model) rộng, người dùng có thể kết luận có sự khác biệt hiệu năng thật sự. Ngược lại, nếu cả hai loại variance đều rộng, cần phân tích thống kê để phân biệt nhiễu và tín hiệu thật~\cite{betterbench}.
+
+Kết quả đánh giá cho thấy 14 trong 24 benchmark không thực hiện đánh giá nhiều lần trên cùng một mô hình hoặc không báo cáo statistical significance hay uncertainty~\cite{betterbench}.
+
+\subsection{Checklist khi đọc leaderboard}
+
+Khi nhìn vào một bảng xếp hạng benchmark, có thể dùng checklist sau --- tổng hợp từ các tiêu chí BetterBench và kinh nghiệm GLUE/SuperGLUE --- để đánh giá mức độ đáng tin của kết quả:
+
+\begin{enumerate}
+    \item Benchmark đang tuyên bố đo construct nào?
+    \item Task và dữ liệu có thật sự đại diện cho construct đó không?
+    \item Metric có che khuất khác biệt giữa các nhóm task không?
+    \item Test set có nguy cơ bị rò rỉ hoặc contamination không?
+    \item Kết quả có báo cáo độ bất định, baseline và điều kiện chạy lại không?
+    \item Có dấu hiệu benchmark đã bị bão hòa hoặc bị tối ưu quá mức không?
+\end{enumerate}
+
+\begin{summarybox}{Kết luận ngắn}
+Một benchmark tốt cần có mục tiêu rõ ràng, dữ liệu phù hợp, metric hợp lệ, quy trình đánh giá minh bạch, khả năng tái lập, tài liệu đầy đủ và cơ chế duy trì. BetterBench cho thấy rằng ngay cả các benchmark phổ biến nhất cũng có thể thiếu nhiều tiêu chí cơ bản, đặc biệt ở giai đoạn implementation và maintenance~\cite{betterbench}. Nếu thiếu các yếu tố này, leaderboard có thể tạo ra ảo giác về tiến bộ, trong khi thực tế benchmark chỉ đang đo một lát cắt hẹp hoặc bị nhiễu của năng lực mô hình.
+\end{summarybox}

@@ -1,0 +1,73 @@
+\section{Quy trình chạy thực nghiệm}
+\label{sec:protocol}
+
+\subsection{Các hệ thống được so sánh}
+
+Demo đánh giá \textbf{sáu mô hình ngôn ngữ} cùng \textbf{hai baseline} phi-LLM. Sáu
+mô hình được chọn theo một thiết kế có chủ đích (Bảng~\ref{tab:systems}): một
+\emph{ladder cùng họ} để xem hiệu ứng kích thước, một \emph{panel $\sim$4B khác họ}
+để xem ổn định thứ hạng ở cùng hạng cân, và một \emph{math-specialist 7B} cố ý lệch
+chuyên môn.
+
+\begin{table}[t]
+\centering
+\caption{Tám hệ thống trong demo (sáu model + hai baseline). \texttt{params\_b} được
+ghi kèm trong mọi bảng phân tích để không nhầm chênh lệch \emph{kích thước} với chênh
+lệch \emph{họ model}. Hai baseline chỉ làm \emph{mốc} ở bảng accuracy
+(Bảng~\ref{tab:accuracy}), \emph{không} tham gia xếp hạng hay đo robustness ở các
+bảng sau.}
+\label{tab:systems}
+\small
+\begin{tabular}{llcl}
+\hline
+\textbf{Model} & \textbf{Họ / vai trò} & \textbf{Params (B)} & \textbf{Ghi chú} \\
+\hline
+gemma-4-e2b      & Gemma-4 (ladder)        & 2.3 & gated \\
+gemma-4-e4b      & Gemma-4 (ladder)        & 4.5 & gated \\
+qwen3.5-4b       & Qwen3.5 (panel $\sim$4B) & 4.0 & tắt thinking \\
+phi-3.5-mini     & Phi-3.5 (panel $\sim$4B) & 3.8 & ungated \\
+qwen2.5-3b       & Qwen2.5 (panel $\sim$4B) & 3.1 & ungated \\
+qwen2.5-math-7b  & Qwen2.5-Math (specialist) & 7.0 & cố ý lệch chuyên môn \\
+\hline
+baseline-random   & non-LLM & -- & đoán ngẫu nhiên \\
+baseline-majority & non-LLM & -- & chọn lớp phổ biến nhất \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Sinh văn bản tất định}
+
+Mọi mô hình chạy qua Hugging Face \texttt{transformers} ở chế độ \textbf{4-bit}
+(bitsandbytes) để vừa một GPU T4 free. Giải mã \textbf{greedy}
+(\texttt{do\_sample=False}) nên đầu ra \emph{tất định}: chạy lại cho \emph{đúng cùng}
+văn bản, đúng cùng điểm. Mô hình suy luận (Qwen3.5) được tắt chế độ ``thinking'' để
+trả lời trực tiếp; math-specialist được cấp thêm token cho chuỗi suy luận.
+
+\subsection{Nạp tuần tự để vừa GPU}
+
+\texttt{evaluate.py} nạp \emph{từng} mô hình một: dựng runner $\to$ chạy hết item
+$\to$ giải phóng GPU (\texttt{del model}, \texttt{gc.collect}, \texttt{empty\_cache})
+$\to$ sang model kế tiếp. Nhờ vậy không bao giờ có hai mô hình cùng chiếm VRAM, và
+cả sáu chạy gọn trên một T4 (không cần đa GPU).
+
+\subsection{Cache để tái lập và chạy nối tiếp}
+
+Mỗi lời gọi mô hình được lưu theo khoá \texttt{sha256(model\_id, prompt)} vào
+\texttt{results/predictions/*.json}; cache lưu \emph{văn bản thô}, còn điểm được
+\emph{tính lại} mỗi lần chạy. Hai hệ quả:
+
+\begin{itemize}
+  \item \textbf{Tái lập không cần GPU lại}: ai có file cache có thể tái sinh toàn
+    bộ bảng/biểu đồ chỉ bằng \texttt{analysis.py}.
+  \item \textbf{Chạy nối tiếp (resume)}: thêm một model mới thì 5 model cũ
+    \emph{cache-hit tức thì}, chỉ model mới thật sự gọi GPU. (Chính cơ chế này cho
+    phép nhóm thêm math-specialist sau, chỉ tốn $\sim$25 phút thay vì chạy lại
+    từ đầu.)
+\end{itemize}
+
+\subsection{Môi trường chạy}
+
+Toàn bộ thực nghiệm chạy trên \textbf{Kaggle Notebook} (GPU T4 free, Internet On,
+secret \texttt{HF\_TOKEN}). Lần đầu cả sáu model mất $\sim$1.5--2 giờ; các lần sau
+gần như tức thì nhờ cache. Quy trình một-bấm (\emph{Run all}) hiện thực tiêu chí
+\emph{reproducibility} của BetterBench.

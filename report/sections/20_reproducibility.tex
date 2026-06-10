@@ -1,0 +1,71 @@
+\section{Hướng dẫn tái lập demo}
+\label{sec:repro}
+
+Demo được thiết kế để \emph{bất kỳ ai cũng chạy lại được}, đúng tiêu chí
+\emph{reproducibility} của BetterBench~\cite{betterbench}. Có ba cơ chế
+bảo đảm tính tất định.
+
+\subsection{Ba trụ cột tái lập}
+
+\begin{enumerate}
+  \item \textbf{Dữ liệu cố định theo seed}: tập con benchmark lấy bằng
+    \texttt{SEED = 0} và ghi ra \texttt{data/*.jsonl} $\Rightarrow$ mọi người nhận
+    \emph{đúng cùng item, cùng thứ tự}.
+  \item \textbf{Sinh văn bản greedy}: \texttt{do\_sample=False} $\Rightarrow$ đầu
+    ra không phụ thuộc ngẫu nhiên; chạy lại cho đúng cùng văn bản.
+  \item \textbf{Cache theo nội dung}: mỗi lời gọi lưu theo
+    \texttt{sha256(model\_id, prompt)} trong \texttt{results/predictions/}. Cache
+    lưu văn bản thô, điểm \emph{tính lại} mỗi lần $\Rightarrow$ tái sinh toàn bộ
+    bảng/biểu đồ \emph{không cần GPU}, và thêm model mới chỉ tốn chi phí cho phần
+    mới.
+\end{enumerate}
+
+\subsection{Cách A --- Kaggle}
+
+\begin{enumerate}
+  \item Mở \texttt{notebook/2\_run\_all.ipynb}. Settings $\to$ Accelerator
+    $\to$ \texttt{GPU T4}; Internet $\to$ On.
+  \item Add-ons $\to$ Secrets $\to$ thêm \texttt{HF\_TOKEN} (HF read token). Chấp
+    nhận licence Gemma trên Hugging Face (các model khác ungated).
+  \item \emph{Run all}. Vì greedy + cache, bấm lại ra \emph{đúng cùng số}. Lần đầu
+    $\sim$1.5--2 giờ; các lần sau gần như tức thì.
+\end{enumerate}
+
+\subsection{Cách B --- Máy có GPU NVIDIA $\geq 8$GB}
+
+\begin{verbatim}
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+huggingface-cli login          # cần đã accept licence Gemma
+python src/evaluate.py         # -> results/per_item.csv
+python src/analysis.py         # -> results/*.csv + images/*.png
+\end{verbatim}
+
+\subsection{Cách C --- Không có GPU (chỉ kiểm tra pipeline)}
+
+\begin{verbatim}
+pip install pandas matplotlib numpy
+MINIBENCH_SYNTHETIC=1 python src/evaluate.py --fake
+MINIBENCH_SYNTHETIC=1 python src/analysis.py
+\end{verbatim}
+
+Đường này dùng \texttt{FakeRunner} + dữ liệu tổng hợp để chứng minh \emph{toàn bộ
+luồng} chạy được trên máy không GPU; \textbf{số liệu sinh ra không dùng để báo cáo}
+--- chỉ để kiểm tra code.
+
+\subsection{Sản phẩm tái lập}
+
+Sau khi chạy, \texttt{results/} chứa: \texttt{per\_item.csv} (từng câu),
+\texttt{accuracy.csv}, \texttt{ranking.csv}, \texttt{coverage.csv},
+\texttt{mmlu\_by\_subject.csv}, \texttt{metric\_gap.csv} (+\texttt{\_examples}),
+\texttt{robustness.csv}, \texttt{error\_analysis.csv}, và \texttt{images/*.png}.
+Mã nguồn và cache prediction được công khai trong repo, nên kết quả trong báo cáo
+này có thể được \emph{tái kiểm} đầy đủ.
+
+\subsection{Giới hạn của tái lập}
+
+Tái lập \emph{tất định} chỉ đúng với cùng phiên bản thư viện (\texttt{transformers},
+\texttt{bitsandbytes}) và cùng phần cứng; lượng tử hoá 4-bit và kernel GPU khác nhau
+có thể gây sai khác nhỏ ở biên. Tuy nhiên cơ chế cache văn bản thô giúp các \emph{con
+số trong báo cáo} luôn tái sinh được từ chính các prediction đã lưu, độc lập với
+phần cứng.

@@ -1,0 +1,102 @@
+% ===========================================================================
+% File: sections/04_construct_validity.tex
+% Phần 4: Construct validity trong benchmark LLM
+% Thuộc tutorial: The Science of Benchmarking — What's Measured, What's Missing, What's Next
+% Thành viên 1: Nền tảng benchmarking và câu hỏi "Benchmark đo cái gì?"
+% ===========================================================================
+
+\section{Construct validity trong benchmark LLM}
+\label{sec:construct_validity}
+
+\subsection{Construct là gì trong bối cảnh benchmark LLM?}
+\label{sec:what_is_construct}
+
+Trong đo lường học (measurement theory), \textbf{construct} là một khái niệm trừu tượng hoặc hiện tượng (phenomenon) mà một phép đo nhắm đến. Construct không thể quan sát hay đo lường trực tiếp, mà cần được \textit{operationalize} --- tức chuyển hóa thành các tác vụ, dữ liệu và metric cụ thể để tạo ra phép đo gián tiếp~\cite{measuring_what_matters}. Bean và cộng sự~\cite{measuring_what_matters} sử dụng thuật ngữ ``phenomenon'' để chỉ các khái niệm trừu tượng mà benchmark nhắm đến, và nhấn mạnh rằng ``tạo một benchmark đòi hỏi việc operationalize các hiện tượng (khái niệm trừu tượng) thành các tác vụ và metric cụ thể, đóng vai trò proxy có thể đo được cho năng lực mô hình''.
+
+Trong bối cảnh benchmark LLM, các construct điển hình bao gồm:
+
+\begin{itemize}
+    \item \textbf{Reasoning}: Năng lực suy luận logic, toán học hoặc thường thức của mô hình --- construct được benchmark thường xuyên nhất (18,5\% trong khảo sát 445 benchmark)~\cite{measuring_what_matters}.
+    \item \textbf{Factual knowledge}: Khả năng truy xuất và sử dụng kiến thức thực tiễn.
+    \item \textbf{Instruction following}: Khả năng tuân thủ hướng dẫn của người dùng.
+    \item \textbf{Robustness}: Tính ổn định của mô hình trước các biến đổi đầu vào.
+    \item \textbf{Coding ability}: Năng lực sinh mã nguồn (code generation, 5,7\%)~\cite{measuring_what_matters}.
+    \item \textbf{Mathematical problem solving}: Năng lực giải bài toán.
+    \item \textbf{Safety/Alignment behavior}: Hành vi an toàn và phù hợp với giá trị con người (alignment, 8,1\%)~\cite{measuring_what_matters}.
+\end{itemize}
+
+Bean và cộng sự~\cite{measuring_what_matters} phát hiện rằng mặc dù 78,2\% benchmark cung cấp định nghĩa cho hiện tượng cần đo, 47,8\% các định nghĩa đó thuộc loại \textit{contested} --- tức hiện tượng có nhiều định nghĩa khả dĩ hoặc không có định nghĩa rõ ràng được đồng thuận (ví dụ, các benchmark về alignment thường nhắm đến các hiện tượng có định nghĩa gây tranh cãi như ``harmlessness''). Ngoài ra, 61,2\% benchmark đo các hiện tượng dạng \textit{composite} --- tức bao gồm nhiều thành phần con --- nhưng không phải lúc nào các thành phần này cũng được đo riêng biệt.
+
+\subsection{Construct validity là gì?}
+\label{sec:what_is_cv}
+
+\textbf{Construct validity} đánh giá liệu một phép đo thực nghiệm có thực sự đo được hiện tượng mà nó tuyên bố đang đo hay không~\cite{measuring_what_matters}. Khái niệm này có nguồn gốc từ kiểm định tâm lý học (psychological testing), nơi nó được phát triển để đánh giá các phép đo cho những hiện tượng không thể xác minh trực tiếp, ví dụ như tính cách~\cite{measuring_what_matters}.
+
+Bean và cộng sự~\cite{measuring_what_matters} định nghĩa construct validity là ``mức độ mà điểm benchmark cung cấp bằng chứng để đưa ra các nhận định về hiện tượng mục tiêu''. Nếu một benchmark có construct validity cao trong việc đo ``reasoning'', thì mô hình đạt điểm cao trên benchmark đó, ở một mức độ nào đó, thực sự có năng lực reasoning. Nhưng nếu construct validity thấp, ``thì điểm số cao có thể không liên quan hoặc thậm chí gây hiểu lầm''.
+
+Raji và cộng sự~\cite{everything_benchmark} cũng nhấn mạnh construct validity là ``một vấn đề về validity bên ngoài, liên quan đến mức độ mà benchmark dataset, cùng các metric đánh giá đi kèm, đại diện cho một tác vụ'', và rằng vấn đề này ``vẫn là một vấn đề bị bỏ quên nói chung'' trong cộng đồng ML.
+
+Construct validity là một khái niệm bao trùm (\textit{overarching concept}), có thể được đánh giá qua nhiều khía cạnh~\cite{measuring_what_matters}:
+
+\begin{itemize}
+    \item \textbf{Face validity}: Benchmark có vẻ bề ngoài hợp lệ trong việc đại diện cho hiện tượng cần đo hay không.
+    \item \textbf{Content validity}: Nội dung tác vụ có bao quát các khía cạnh quan trọng của hiện tượng hay không.
+    \item \textbf{Ecological \& predictive validity}: Benchmark có liên quan đến bối cảnh thực tế và dự đoán hiệu năng tương lai hay không.
+    \item \textbf{Convergent \& discriminant validity}: Kết quả benchmark có tương quan với (và chỉ với) các benchmark đo hiện tượng tương tự hay không.
+\end{itemize}
+
+\subsection{Chuỗi đo lường: Từ construct đến interpretation}
+\label{sec:measurement_chain}
+
+Quá trình benchmarking có thể được mô hình hóa như một chuỗi đo lường, trong đó mỗi mắt xích có thể đưa vào các nguồn sai lệch:
+
+\begin{equation}
+\text{Construct} \xrightarrow{\text{operationalize}} \text{Task} \xrightarrow{\text{instantiate}} \text{Dataset} \xrightarrow{\text{score}} \text{Metric} \xrightarrow{\text{aggregate}} \text{Score} \xrightarrow{\text{claim}} \text{Interpretation}
+\label{eq:measurement_chain}
+\end{equation}
+
+Bean và cộng sự~\cite{measuring_what_matters} trình bày quy trình này trong khung phân tích của họ (Hình~1): ``Một hiện tượng (phenomenon) được operationalize thông qua một tác vụ (task), được chấm điểm bằng một metric, để hỗ trợ một nhận định (claim) về hiện tượng đó''. Mỗi bước chuyển đổi trong chuỗi này tiềm ẩn nguy cơ làm suy giảm construct validity:
+
+\begin{itemize}
+    \item \textbf{Construct $\rightarrow$ Task}: Tác vụ được chọn có thể chỉ bao phủ một phần nhỏ của construct. Ví dụ, sử dụng bài thi toán cấp tiểu học (như GSM8K) để đo ``reasoning'' chỉ bao phủ reasoning toán học ở mức độ cơ bản, không đại diện cho reasoning tổng quát~\cite{measuring_what_matters}.
+    \item \textbf{Task $\rightarrow$ Dataset}: Cách lấy mẫu tác vụ ảnh hưởng lớn đến tính đại diện. 27,0\% benchmark sử dụng convenience sampling --- lấy dữ liệu sẵn có mà không đảm bảo tính đại diện~\cite{measuring_what_matters}.
+    \item \textbf{Dataset $\rightarrow$ Metric}: Lựa chọn metric quyết định khía cạnh nào của hiệu năng được đo. 40,7\% benchmark chỉ sử dụng exact match, có thể bỏ qua các khía cạnh quan trọng như chất lượng lập luận hay tính nhất quán~\cite{measuring_what_matters}.
+    \item \textbf{Score $\rightarrow$ Interpretation}: Diễn giải điểm số có thể vượt quá phạm vi thiết kế của benchmark~\cite{everything_benchmark, measuring_what_matters}.
+\end{itemize}
+
+\subsection{Task chỉ là proxy, không phải construct}
+\label{sec:task_as_proxy}
+
+Một điểm then chốt cần nhận thức rõ: tác vụ trong benchmark chỉ là \textit{proxy} (đại diện gián tiếp) cho construct, không phải bản thân construct. Bean và cộng sự~\cite{measuring_what_matters} nhấn mạnh rằng ``tạo benchmark đòi hỏi việc operationalize hiện tượng thành các tác vụ và metric cụ thể đóng vai trò proxy có thể đo được cho năng lực mô hình''. Tuy nhiên, khoảng cách giữa proxy và construct có thể rất lớn; ví dụ, GSM8K tự mô tả là đo ``informal reasoning ability'' thông qua ``grade school math problems using basic arithmetic''. Tác vụ cụ thể (giải bài toán tiểu học) là proxy cho construct rộng hơn (reasoning ability). Tuy nhiên, hiệu năng cao trên bài toán tiểu học không chứng minh năng lực reasoning tổng quát --- mô hình có thể đạt điểm cao nhờ pattern matching, memorization hoặc khai thác đặc điểm cấu trúc của dataset.
+
+\subsection{Nguy cơ diễn giải quá mức}
+\label{sec:overinterpretation}
+
+Khi điểm benchmark được diễn giải vượt quá phạm vi thiết kế, nhiều nguy cơ phát sinh:
+
+\begin{itemize}
+    \item \textbf{Điểm cao trên benchmark reasoning không nhất thiết chứng minh năng lực reasoning tổng quát}: Mô hình có thể khai thác các pattern cụ thể trong dataset, sử dụng ``spurious cues'' hoặc memorize câu trả lời~\cite{everything_benchmark, measuring_what_matters}. Raji và cộng sự cảnh báo rằng ``hiệu năng trên benchmark không chỉ là tác vụ được thiết kế sai mà còn có khả năng được đo không phù hợp, khiến kết quả khó diễn giải một cách có ý nghĩa''.
+    
+    \item \textbf{Điểm cao trên benchmark knowledge không chứng minh hiểu biết đáng tin cậy trong mọi bối cảnh}: Benchmark knowledge thường giới hạn trong ngôn ngữ, văn hóa và bối cảnh cụ thể. Ví dụ, ImageNet bị giới hạn nghiêm trọng về đa dạng địa lý --- 45\% hình ảnh từ Mỹ, hơn 60\% từ Bắc Mỹ và châu Âu --- khiến kiến thức ``tổng quát'' thực chất là kiến thức gắn với bối cảnh văn hóa phương Tây~\cite{everything_benchmark}.
+
+    \item \textbf{Điểm cao có thể phản ánh pattern matching, memorization hoặc contamination}: Bean và cộng sự~\cite{measuring_what_matters} cảnh báo rằng contamination có thể xảy ra ngay cả khi nhà phát triển hành động thiện chí, và theo thời gian, nỗ lực cải thiện benchmark dẫn đến overfitting ở cấp cộng đồng; hơn nữa, các benchmark sử dụng format multiple choice (40,0\%) có thể bị ``gaming'' --- mô hình khai thác cấu trúc câu trả lời thay vì thực sự giải quyết vấn đề.
+\end{itemize}
+
+\subsection{Các câu hỏi kiểm tra construct validity}
+\label{sec:cv_checklist}
+
+Dựa trên khung phân tích của Bean và cộng sự~\cite{measuring_what_matters}, construct validity của một benchmark có thể được đánh giá thông qua các câu hỏi sau:
+
+\begin{enumerate}
+    \item \textbf{Benchmark có định nghĩa construct rõ ràng không?} Hiện tượng cần đo có được định nghĩa chính xác và operational hay không? (22\% benchmark không cung cấp định nghĩa; 47,8\% sử dụng định nghĩa bị tranh cãi)~\cite{measuring_what_matters}.
+    
+    \item \textbf{Task có đại diện đúng cho construct không?} Tác vụ được chọn có bao phủ các khía cạnh quan trọng của hiện tượng hay chỉ là convenience sample? Dưới 10\% benchmark sử dụng tác vụ thực tế hoàn chỉnh (complete real-world tasks)~\cite{measuring_what_matters}.
+    
+    \item \textbf{Metric có phản ánh đúng chất lượng cần đo không?} Metric được chọn có phù hợp với bản chất của construct? Exact match (81,3\%) có thể không phù hợp cho các hiện tượng đòi hỏi đánh giá tinh tế hơn~\cite{measuring_what_matters}.
+    
+    \item \textbf{Protocol có kiểm soát các yếu tố gây nhiễu không?} Các tác vụ phụ (auxiliary tasks) như instruction following hay output formatting có được kiểm soát để không ảnh hưởng đến kết quả đo construct chính không?~\cite{measuring_what_matters}
+    
+    \item \textbf{Diễn giải điểm số có vượt quá phạm vi thiết kế không?} Nhận định dựa trên điểm benchmark có tương thích với thiết kế và giới hạn của benchmark hay không? Raji và cộng sự~\cite{everything_benchmark} cảnh báo rằng ``các nhận định được biện minh thông qua benchmark datasets thường vượt xa các tác vụ mà chúng được thiết kế ban đầu''.
+\end{enumerate}
+
+Bean và cộng sự~\cite{measuring_what_matters} phát hiện rằng ``gần như tất cả các bài báo đều có điểm yếu ở ít nhất một khía cạnh trong các lĩnh vực hiện tượng, tác vụ, metric và nhận định'' liên quan đến construct validity, và chỉ 53,4\% bài báo trình bày bằng chứng hỗ trợ construct validity của benchmark.

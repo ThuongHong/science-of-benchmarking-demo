@@ -1,0 +1,58 @@
+\section{What's Next: Benchmark thế hệ mới và benchmark gần thực tế}
+\label{sec:whats_next}
+
+Hai phần trước đã chỉ ra hai giới hạn cốt lõi của benchmark hiện hành: chúng đo
+một \emph{lát cắt hẹp} của năng lực và viện dẫn nó như đại diện cho ``tiến bộ AI''
+nói chung~\cite{everything_benchmark}, đồng thời chúng \emph{bão hoà} nhanh khi mô
+hình mạnh lên, khiến một con số tổng không còn phân biệt được các hệ thống ở
+đỉnh~\cite{superglue}. Phần này trả lời câu hỏi \emph{What's Next}: cộng
+đồng đang dịch chuyển benchmark theo hướng nào để khắc phục hai giới hạn đó.
+
+\subsection{Từ trắc nghiệm tĩnh sang tác vụ gần thực tế}
+
+Thế hệ benchmark cổ điển (GLUE, SuperGLUE, MMLU) phần lớn là \emph{tác vụ tĩnh,
+đầu ra ngắn}: phân loại câu, chọn đáp án trắc nghiệm, điền nhãn. Định dạng này dễ
+chấm tự động nhưng cách xa cách con người thực sự dùng mô hình. Một mô hình trả
+lời đúng câu hỏi MMLU về ``software engineering'' không đảm bảo nó \emph{sửa được
+một bug thật} trong một kho mã thật. Khoảng cách giữa \emph{construct mục tiêu}
+(năng lực kỹ sư phần mềm) và \emph{proxy task} (trắc nghiệm về kỹ sư phần mềm)
+chính là vấn đề construct validity mà~\cite{measuring_what_matters} cảnh báo.
+
+Benchmark thế hệ mới thu hẹp khoảng cách này bằng cách lấy \emph{chính tác vụ thực
+tế} làm đề thi: giải issue GitHub có thật (SWE-bench), hoàn thành một quy trình
+nhiều bước trong môi trường thật, hay thao tác trên trình duyệt/hệ điều hành. Đặc
+trưng chung:
+
+\begin{itemize}
+  \item \textbf{Đầu vào lấy từ thực tế}, không do người ra đề bịa ra, nên khó bị
+    tối ưu hẹp và phản ánh đúng phân phối công việc thật.
+  \item \textbf{Chấm bằng thực thi} (execution-based) thay vì so chuỗi: chạy thử
+    kết quả của mô hình trong một môi trường và kiểm tra tiêu chí pass/fail khách
+    quan, thay vì khớp văn bản với một đáp án mẫu.
+  \item \textbf{Đầu ra dài, nhiều bước}: lời giải là một patch, một chuỗi hành
+    động, hay một phiên làm việc --- không phải một nhãn duy nhất.
+\end{itemize}
+
+\subsection{Agentic benchmark: đánh giá cả quá trình, không chỉ câu trả lời}
+
+Khi mô hình được trang bị công cụ (chạy code, đọc file, tìm kiếm, gọi API) và
+hành động qua nhiều vòng, ta gọi nó là một \emph{agent}. Đánh giá agent đòi hỏi
+benchmark phải cung cấp một \emph{môi trường} chứ không chỉ một câu hỏi: agent
+phải quan sát trạng thái, ra hành động, nhận phản hồi, rồi lặp lại cho tới khi
+hoàn thành mục tiêu. Điều này kéo theo vài hệ quả về đo lường:
+
+\begin{itemize}
+  \item Tiêu chí thành công là \emph{trạng thái cuối} của môi trường (test
+    suite xanh, file đúng định dạng), không phải một câu trả lời tức thời.
+  \item Cần kiểm soát \emph{tài nguyên} (số bước, số lần gọi công cụ, thời gian)
+    vì agent có thể ``đi vòng'' rất lâu.
+  \item Xuất hiện rủi ro đánh giá mới: rò rỉ lời giải qua môi trường, hành vi
+    không xác định (non-determinism) do công cụ bên ngoài, và chi phí chạy cao.
+\end{itemize}
+
+Hai dịch chuyển này --- \emph{gần thực tế} và \emph{agentic} --- là mạch ``What's
+Next'' của tutorial. Phần~\ref{sec:swe_bench} lấy \textbf{SWE-bench} làm case study
+tiêu biểu, và demo của nhóm (Phần~\ref{sec:demo_design}--\ref{sec:repro})
+mượn đúng tinh thần ``chấm bằng cơ chế trích xuất/thực thi'' để cho thấy: khi
+benchmark tiến gần thực tế, \emph{chỗ dễ sai} của phép đo dịch từ ``câu hỏi'' sang
+\emph{``cách chấm''}.

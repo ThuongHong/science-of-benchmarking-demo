@@ -1,0 +1,86 @@
+% ===========================================================================
+% File: sections/07_betterbench.tex
+% Phần 7: BetterBench và khung đánh giá chất lượng benchmark
+% Thuộc tutorial: The Science of Benchmarking — What's Measured, What's Missing, What's Next
+% Thành viên 2: Chất lượng benchmark, benchmark truyền thống và các vấn đề còn thiếu
+% Nguồn chính: BetterBench (Reuel et al., NeurIPS 2024 Datasets and Benchmarks Track)
+% ===========================================================================
+
+\section{BetterBench và khung đánh giá chất lượng benchmark}
+\label{sec:betterbench}
+
+BetterBench được đề xuất nhằm giải quyết một vấn đề quan trọng: cộng đồng AI thường dùng benchmark để đánh giá mô hình, nhưng lại ít đánh giá chính chất lượng của benchmark~\cite{betterbench}. Trong bối cảnh các mô hình AI ngày càng được dùng trong môi trường có tác động lớn --- từ triển khai thương mại đến đánh giá tuân thủ quy định --- việc đánh giá sai năng lực hoặc rủi ro của mô hình có thể dẫn đến lựa chọn hệ thống không phù hợp. Vì vậy, BetterBench xem benchmark không chỉ là công cụ đo điểm, mà là một đối tượng cần được kiểm định về chất lượng~\cite{betterbench}.
+
+\begin{summarybox}{Ý chính của BetterBench}
+\begin{itemize}
+    \item BetterBench đánh giá \textbf{chính benchmark}, không chỉ đánh giá mô hình.
+    \item Khung đánh giá được tổ chức theo \textbf{vòng đời benchmark}: thiết kế, triển khai, tài liệu, duy trì và nghỉ hưu.
+    \item 24 benchmark (16 foundation model và 8 non-foundation model) được đánh giá theo 46 tiêu chí.
+    \item Kết quả cho thấy giai đoạn \textbf{implementation} là yếu nhất, và có tương quan có ý nghĩa thống kê giữa chất lượng thiết kế và tính khả dụng.
+\end{itemize}
+\end{summarybox}
+
+\subsection{Phương pháp luận}
+
+BetterBench xây dựng khung đánh giá qua ba nguồn: (1) tổng quan tài liệu về thực tiễn đánh giá trong các ngành như giáo dục, tâm lý học và kỹ thuật phần mềm; (2) phỏng vấn chuyên gia về benchmarking; và (3) phân tích thực tiễn benchmarking AI hiện tại~\cite{betterbench}. Mỗi benchmark được chấm theo thang điểm rời rạc bốn mức cho từng tiêu chí, sau đó tổng hợp theo giai đoạn vòng đời. Đánh giá được thực hiện bởi nhiều người chấm độc lập để đảm bảo tính khách quan~\cite{betterbench}.
+
+\subsection{Vòng đời benchmark}
+
+Một đóng góp chính của BetterBench là xây dựng khung đánh giá dựa trên vòng đời benchmark~\cite{betterbench}. Cách nhìn này quan trọng vì lỗi benchmark không chỉ xuất hiện trong dữ liệu hoặc metric, mà có thể xuất hiện từ lúc xác định mục tiêu cho đến khi benchmark đã bão hòa nhưng vẫn tiếp tục được sử dụng.
+
+\begin{enumerate}
+    \item \textbf{Design (Thiết kế).} Benchmark cần xác định rõ mục đích, phạm vi và cấu trúc. Nhà phát triển phải trả lời: đang đo năng lực nào, tại sao năng lực đó quan trọng, task có đại diện cho năng lực đó không, và điểm số nên được diễn giải như thế nào. BetterBench yêu cầu benchmark phải nêu construct definition rõ ràng, sử dụng chuyên gia trong quá trình thiết kế, chọn task phù hợp với construct, và cân nhắc các yếu tố như gameability (khả năng bị ``chơi gian'')~\cite{betterbench}.
+
+    \item \textbf{Implementation (Triển khai).} Benchmark cần được xây dựng cẩn thận từ dữ liệu, annotation, môi trường chạy và mã đánh giá. BetterBench đánh giá các tiêu chí như: có cung cấp script tái lập kết quả hay không, có hỗ trợ đánh giá qua API không, có metadata chuẩn hóa không, có cơ chế chống data contamination (ví dụ: mã hóa evaluation instances, globally unique identifiers, canary strings) hay không~\cite{betterbench}. Đây là giai đoạn có điểm trung bình thấp nhất trong tất cả các benchmark được đánh giá (6.2/15)~\cite{betterbench}.
+
+    \item \textbf{Documentation (Tài liệu hóa).} Benchmark phải mô tả rõ task, dataset, metric, quyết định thiết kế, giới hạn và tài nguyên hỗ trợ người dùng. BetterBench yêu cầu cả tài liệu kỹ thuật (requirements file, quick-start guide, in-line comments, code documentation) lẫn tài liệu học thuật (paper công khai, peer review, documentation of limitations, license)~\cite{betterbench}. Điểm trung bình cho giai đoạn documentation là 10.1/15, cao hơn implementation nhưng vẫn còn nhiều lỗ hổng~\cite{betterbench}.
+
+    \item \textbf{Maintenance (Duy trì).} Benchmark cần có cơ chế tiếp nhận phản hồi, sửa lỗi và đánh giá lại mức độ còn phù hợp. BetterBench yêu cầu code usability được kiểm tra trong vòng một năm qua, có kênh phản hồi cho người dùng, và có thông tin liên hệ của người chịu trách nhiệm~\cite{betterbench}. Điểm trung bình cho maintenance là 9.6/15~\cite{betterbench}.
+
+    \item \textbf{Retirement (Nghỉ hưu).} Không phải benchmark nào cũng nên được dùng mãi mãi. Khi benchmark bị bão hòa, không còn phản ánh đúng tiến bộ, hoặc bị contamination nghiêm trọng, cần có kế hoạch thông báo, lưu trữ và đánh dấu benchmark là đã nghỉ hưu~\cite{betterbench}. BetterBench không bao gồm tiêu chí retirement trong đánh giá định lượng vì chúng chủ yếu áp dụng cho benchmark đã kết thúc vòng đời~\cite{betterbench}.
+\end{enumerate}
+
+\subsection{Kết quả đánh giá định lượng}
+
+BetterBench đánh giá 24 benchmark: 16 benchmark cho foundation models (FM) và 8 benchmark cho non-foundation models (non-FM)~\cite{betterbench}. Một số kết quả nổi bật:
+
+\begin{itemize}
+    \item \textbf{Giai đoạn yếu nhất là implementation.} Điểm trung bình cho implementation là 6.2/15, thấp hơn đáng kể so với design (10.8/15), documentation (10.1/15) và maintenance (9.6/15)~\cite{betterbench}. Điều này cho thấy nhiều benchmark có ý tưởng thiết kế tốt nhưng thiếu hạ tầng kỹ thuật để đảm bảo tái lập và sử dụng thực tế.
+
+    \item \textbf{Thiếu tái lập kết quả.} 17 trong 24 benchmark không cung cấp script dễ chạy để tái lập kết quả. Điểm trung bình cho tiêu chí ``bao gồm script tái lập kết quả'' chỉ đạt 3.75/15~\cite{betterbench}.
+
+    \item \textbf{Thiếu báo cáo statistical significance.} Điểm trung bình cho tiêu chí ``báo cáo statistical significance'' là 5.62/15. 14 trong 24 benchmark không thực hiện đánh giá nhiều lần trên cùng một mô hình hoặc không báo cáo uncertainty~\cite{betterbench}.
+
+    \item \textbf{Tương quan giữa design và usability.} BetterBench tìm thấy tương quan Pearson có ý nghĩa thống kê ($\rho = 0.693$, $p < 0.001$) giữa điểm design và điểm usability (trung bình có trọng số của implementation, documentation, maintenance) cho tất cả benchmark. Điều này gợi ý rằng benchmark thiết kế kém cũng có xu hướng kém khả dụng~\cite{betterbench}.
+
+    \item \textbf{Chênh lệch chất lượng lớn.} MMLU đạt weighted average thấp nhất (5.5), trong khi GPQA đạt điểm cao hơn đáng kể (11.0). Tuy nhiên, các developer mô hình thường báo cáo kết quả trên cả hai benchmark mà không nêu rõ sự khác biệt chất lượng~\cite{betterbench}.
+\end{itemize}
+
+\subsection{Các tiêu chí BetterBench gợi ý}
+
+BetterBench đề xuất một hệ thống chấm điểm gồm 46 tiêu chí~\cite{betterbench}, có thể nhóm thành các câu hỏi thực hành:
+
+\begin{itemize}
+    \item \textbf{Mục tiêu đo}: benchmark có nói rõ construct và phạm vi sử dụng không?
+    \item \textbf{Thiết kế task}: task có đại diện cho năng lực cần đo hay chỉ kiểm tra shortcut bề mặt? Có sử dụng domain expert trong thiết kế không?
+    \item \textbf{Tài liệu}: dataset, metric, baseline, license, hạn chế và quy trình xây dựng dữ liệu có được mô tả đầy đủ không?
+    \item \textbf{Mã đánh giá}: code có công khai, ổn định, có documentation, requirements file và dễ chạy lại không? Có build status trên repository không?
+    \item \textbf{Thống kê}: kết quả có báo cáo uncertainty, significance hoặc variance giữa các lần chạy không?
+    \item \textbf{Chống contamination}: có globally unique identifiers, encryption hoặc canary strings để tránh data contamination không?
+    \item \textbf{Phản hồi}: benchmark có kênh sửa lỗi và cập nhật khi cộng đồng phát hiện vấn đề không?
+\end{itemize}
+
+\subsection{Các cân nhắc thiết kế bổ sung}
+
+Ngoài 46 tiêu chí chính thức, BetterBench cũng thảo luận một số cân nhắc thiết kế mà tính phù hợp phụ thuộc vào ngữ cảnh~\cite{betterbench}:
+
+\begin{itemize}
+    \item \textbf{General vs.\ specific benchmarks}: benchmark tổng quát giúp đánh giá năng lực nền tảng nhưng khó áp dụng cho thực tế; benchmark chuyên biệt dễ áp dụng nhưng phạm vi hẹp.
+    \item \textbf{Dynamic vs.\ static benchmarks}: benchmark động có thể giảm thiểu saturation và contamination nhưng giảm khả năng so sánh kết quả giữa các thời điểm khác nhau.
+    \item \textbf{Detecting small improvements}: benchmark nên được thiết kế sao cho sự cải thiện 1\% có thể được phát hiện tin cậy~\cite{betterbench}.
+    \item \textbf{Versioning}: thay đổi nhỏ cần task versioning; thay đổi lớn cần phát hành benchmark version mới~\cite{betterbench}.
+\end{itemize}
+
+\begin{summarybox}{Bài học rút ra}
+Từ BetterBench, thay vì chỉ hỏi ``model nào thắng leaderboard?'', ta cần hỏi thêm ``leaderboard này có đáng tin không?'', ``benchmark này đo đúng năng lực nào?'', và ``kết quả này có thể dùng cho quyết định thực tế nào?''. BetterBench cung cấp một checklist cụ thể giúp nhà phát triển benchmark thiết kế tốt hơn, nhà phát triển mô hình lựa chọn benchmark phù hợp hơn, và cơ quan quản lý đánh giá benchmark nào đủ chất lượng cho mục đích tuân thủ~\cite{betterbench}.
+\end{summarybox}

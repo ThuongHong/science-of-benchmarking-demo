@@ -1,0 +1,52 @@
+% ============ MAIN.TEX ============
+\documentclass[12pt]{article}
+
+% Gọi file cấu hình
+\input{preamble.tex}
+
+% ============ DOCUMENT ============
+\begin{document}
+
+\pagenumbering{roman}
+
+% Gọi trang bìa
+\input{sections/00_trang_bia.tex}
+
+\tableofcontents
+\pagebreak
+\listoftables
+\pagebreak
+\listoffigures
+\pagebreak
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% ============ NỘI DUNG ============
+\input{sections/01_introduction.tex}
+\input{sections/02_background.tex}
+\input{sections/03_foundations.tex}
+\input{sections/04_construct_validity.tex}
+\input{sections/05_whats_measured.tex}
+\input{sections/06_benchmark_quality.tex}
+\input{sections/07_betterbench.tex}
+\input{sections/08_glue.tex}
+\input{sections/09_superglue.tex}
+\input{sections/10_whats_missing.tex}
+\input{sections/11_discussion.tex}
+\input{sections/12_whats_next}
+\input{sections/13_swe_bench}
+\input{sections/14_demo_design}
+\input{sections/15_dataset}
+\input{sections/16_metrics}
+\input{sections/17_experimental_protocol}
+\input{sections/18_experimental_results}
+\input{sections/19_error_analysis}
+\input{sections/20_reproducibility}
+
+\input{sections/tu_danh_gia.tex}
+
+% ============ TÀI LIỆU THAM KHẢO ============
+\input{ref/ref.tex}
+
+\end{document}

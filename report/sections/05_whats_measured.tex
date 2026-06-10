@@ -1,0 +1,168 @@
+% ===========================================================================
+% File: sections/05_whats_measured.tex
+% Phần 5: What's Measured — Benchmark hiện nay đang đo những gì?
+% Thuộc tutorial: The Science of Benchmarking — What's Measured, What's Missing, What's Next
+% Thành viên 1: Nền tảng benchmarking và câu hỏi "Benchmark đo cái gì?"
+%
+% Ghi chú package cần có trong file chính:
+%   \usepackage{tabularx}
+%   \usepackage{booktabs}
+%   \usepackage{longtable}
+%   \usepackage{array}  (tùy chọn, cho cột p{})
+% ===========================================================================
+
+\section{What's Measured: Benchmark hiện nay đang đo những gì?}
+\label{sec:whats_measured}
+
+\subsection{Trả lời câu hỏi trung tâm}
+
+Câu hỏi ``Benchmark đo cái gì?'' có một câu trả lời ngắn gọn nhưng quan trọng: \textit{Benchmark đo hiệu năng (performance) của mô hình trên các tác vụ cụ thể được thiết kế có chủ đích, trong các điều kiện đánh giá xác định}. Benchmark không đo trực tiếp ``trí tuệ'', ``hiểu biết'' hay ``tiến bộ AI'' nói chung; Raji và cộng sự~\cite{everything_benchmark} nhấn mạnh rằng ``thực tế dữ liệu được thiết kế, mang tính chủ quan và bị giới hạn theo những cách đòi hỏi một cách đặt vấn đề khác so với bất kỳ tuyên bố nào về kiến thức tổng quát hay năng lực đa dụng''. Bean và cộng sự~\cite{measuring_what_matters} bổ sung rằng giá trị của benchmark phụ thuộc vào construct validity --- tức mức độ điểm số cung cấp bằng chứng hợp lệ cho các nhận định về hiện tượng mục tiêu.
+
+Điểm benchmark là \textit{kết quả của thiết kế đo lường} --- nó phản ánh sự tương tác giữa năng lực mô hình, thiết kế tác vụ, lựa chọn metric, evaluation protocol và nhiều yếu tố khác. Điểm số này cần được diễn giải trong phạm vi giới hạn của thiết kế benchmark.
+
+\subsection{Phân loại các năng lực thường được benchmark}
+
+Dựa trên khảo sát có hệ thống 445 benchmark LLM bởi Bean và cộng sự~\cite{measuring_what_matters} và phân tích của Raji và cộng sự~\cite{everything_benchmark}, các năng lực thường được benchmark trong AI/LLM có thể phân loại như sau:
+
+\subsubsection{Reasoning (Suy luận)}
+
+Reasoning là construct được benchmark nhiều nhất (18,5\% trong khảo sát). Benchmark reasoning thường đo thông qua các tác vụ giải bài toán toán học (ví dụ: GSM8K), suy luận logic, hoặc suy luận thường thức (commonsense reasoning), với metric phổ biến là exact match trên đáp án cuối cùng. Tuy nhiên, construct ``reasoning'' có nhiều định nghĩa khả dĩ, là một hiện tượng dạng composite và trong một số tác vụ khó tách biệt năng lực suy luận khỏi kiến thức sẵn có của mô hình; hơn nữa, bằng chứng cho thấy LLM nhạy cảm với các biến đổi nhỏ trong cách diễn đạt bài toán, đặt câu hỏi về tính robust của năng lực reasoning được đo~\cite{measuring_what_matters}.
+
+\subsubsection{Language understanding (Hiểu ngôn ngữ)}
+
+Benchmark hiểu ngôn ngữ, tiêu biểu là GLUE và SuperGLUE, đo hiệu năng trên các tác vụ phân loại câu đơn, phân loại cặp câu, suy luận ngôn ngữ tự nhiên (NLI) và giải quyết tham chiếu (coreference resolution). Raji và cộng sự~\cite{everything_benchmark} chỉ ra rằng GLUE trộn lẫn năng lực ngôn ngữ (linguistic competence) với suy luận thường thức và kiến thức thế giới, trong khi đây là các vấn đề có phạm vi hoàn toàn khác nhau; hơn nữa, benchmark chỉ đánh giá trên một ngôn ngữ cụ thể (tiếng Anh Mỹ) và một tập hữu hạn các dạng tác vụ, không đại diện cho ``hiểu ngôn ngữ'' nói chung.
+
+\subsubsection{Factual knowledge (Kiến thức thực tiễn)}
+
+Benchmark kiến thức thường sử dụng các câu hỏi trắc nghiệm hoặc câu hỏi mở dựa trên đề thi hoặc bộ câu hỏi chuyên ngành, với metric exact match. 38,2\% benchmark trong khảo sát~\cite{measuring_what_matters} tái sử dụng dữ liệu từ đề thi hoặc nguồn có sẵn. Điểm cao phản ánh khả năng trả lời đúng câu hỏi trong phạm vi kiến thức và định dạng cụ thể, nhưng không chứng minh ``hiểu biết'' sâu sắc hay khả năng áp dụng kiến thức trong bối cảnh mới.
+
+\subsubsection{Code generation (Sinh mã nguồn)}
+
+Code generation chiếm 5,7\% benchmark trong khảo sát. Benchmark coding thường yêu cầu mô hình sinh mã nguồn hoàn chỉnh cho một đặc tả bài toán, với metric dựa trên pass rate (tỷ lệ test case vượt qua) hoặc exact match. Dưới 10\% benchmark sử dụng tác vụ thực tế hoàn chỉnh (complete real-world tasks), ví dụ viết truy vấn SQL đúng từ câu hỏi ngôn ngữ tự nhiên; phần lớn tác vụ coding trong benchmark là constructed hoặc partially real-world~\cite{measuring_what_matters}.
+
+\subsubsection{Safety và alignment}
+
+Alignment chiếm 8,1\% benchmark, đo khả năng mô hình tạo đầu ra an toàn, phù hợp với giá trị con người. Tuy nhiên, construct ``safety'' hay ``harmlessness'' là các hiện tượng có định nghĩa bị tranh cãi (contested definitions); Bean và cộng sự~\cite{measuring_what_matters} cảnh báo rằng các khái niệm về ``harm'' và ``bias'' mang tính phụ thuộc văn hóa và xã hội, nên kết quả benchmark safety cần được diễn giải trong bối cảnh cụ thể.
+
+\subsubsection{Các năng lực khác}
+
+Ngoài các nhóm chính, benchmark cũng đo instruction following, robustness, mathematical ability, và các năng lực ứng dụng cụ thể (agentic capabilities, thương mại điện tử, tổng hợp văn bản). Mỗi nhóm đều có đặc điểm riêng về dạng tác vụ, metric và giới hạn diễn giải.
+
+\Needspace{10\baselineskip}
+\subsection{Bảng tổng hợp: Construct, task, metric và giới hạn diễn giải}
+
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
+
+\begin{longtable}{
+    P{2.4cm}
+    P{3cm}
+    P{2.4cm}
+    P{3.6cm}
+    P{4cm}
+}
+\caption{Tổng hợp các construct thường được benchmark trong AI/LLM, dạng task, metric, phạm vi diễn giải và giới hạn.}
+\label{tab:whats_measured} \\
+
+\toprule
+\textbf{Construct} &
+\textbf{Dạng task} &
+\textbf{Metric} &
+\textbf{Điểm số hỗ trợ nhận định} &
+\textbf{Điểm số không chứng minh} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Construct} &
+\textbf{Dạng task} &
+\textbf{Metric} &
+\textbf{Điểm số hỗ trợ nhận định} &
+\textbf{Điểm số không chứng minh} \\
+\midrule
+\endhead
+
+Reasoning &
+Giải bài toán, suy luận logic, commonsense QA &
+Exact match, accuracy &
+Hiệu năng trên các dạng bài toán cụ thể trong benchmark &
+Năng lực suy luận tổng quát; reasoning trong bối cảnh mới hoặc phức tạp hơn \\
+
+\addlinespace[2pt]
+Language understanding &
+NLI, phân loại cảm xúc, paraphrase detection &
+Accuracy, F1 &
+Hiệu năng trên các tác vụ NLU cụ thể, thường là tiếng Anh &
+``Hiểu ngôn ngữ'' nói chung; năng lực đa ngôn ngữ \\
+
+\addlinespace[2pt]
+Factual knowledge &
+Trắc nghiệm, câu hỏi mở theo chủ đề &
+Exact match, accuracy &
+Khả năng trả lời đúng trong phạm vi câu hỏi và lĩnh vực cụ thể &
+Hiểu biết sâu; khả năng áp dụng kiến thức trong ngữ cảnh mới \\
+
+\addlinespace[2pt]
+Code generation &
+Sinh mã từ đặc tả, sửa lỗi, hoàn thiện mã &
+Pass rate, exact match &
+Khả năng sinh mã đúng cho các bài toán trong benchmark &
+Năng lực lập trình tổng quát trong dự án thực tế \\
+
+\addlinespace[2pt]
+Safety / Alignment &
+Phát hiện nội dung có hại, từ chối yêu cầu nguy hiểm &
+Exact match, human rating, LLM-as-a-judge &
+Hành vi mô hình trên các tình huống test cụ thể &
+An toàn toàn diện trong triển khai thực tế \\
+
+\addlinespace[2pt]
+Mathematical ability &
+Bài toán ở nhiều cấp độ, chứng minh &
+Exact match, accuracy &
+Hiệu năng trên dạng bài và cấp độ cụ thể &
+Năng lực toán học tổng quát \\
+
+\addlinespace[2pt]
+Instruction following &
+Tuân thủ hướng dẫn phức tạp, multi-turn &
+Exact match, human rating &
+Khả năng tuân thủ instructions cụ thể &
+Tuân thủ trong mọi bối cảnh sử dụng \\
+
+\addlinespace[2pt]
+Robustness &
+Đánh giá với perturbation, adversarial inputs &
+Accuracy drop, consistency &
+Tính ổn định trước các biến đổi cụ thể &
+Robustness tổng quát trước mọi loại perturbation \\
+
+\bottomrule
+\end{longtable}
+
+\subsection{Những điều benchmark không đo được}
+
+Phân tích ở trên cho thấy benchmark có nhiều giới hạn cơ bản trong khả năng đo lường:
+
+\paragraph{Benchmark đo performance under specific conditions, không đo general intelligence.}
+Raji và cộng sự~\cite{everything_benchmark} lập luận rằng ``mục tiêu đo năng lực tổng quát không thể được hiện thực hóa đầy đủ trong các benchmark dựa trên dữ liệu'', bởi dữ liệu luôn hữu hạn, mang tính chủ quan và gắn với bối cảnh cụ thể; ``không có dataset nào có thể nắm bắt toàn bộ sự phức tạp của thực tại, giống như không có bảo tàng nào có thể chứa toàn bộ catalog của mọi thứ trên thế giới''.
+
+\paragraph{Benchmark không thay thế phân tích định tính.}
+Raji và cộng sự~\cite{everything_benchmark} đề xuất nhiều phương pháp đánh giá bổ sung cho benchmarking, bao gồm error analysis chi tiết, disaggregated analysis (phân tích theo nhóm con), counterfactual analysis, ablation testing và phân tích thuộc tính mô hình; các phương pháp này tạo ra ``kết quả phong phú và chi tiết, không phù hợp cho so sánh nhanh giữa các hệ thống. Nhưng đây là đặc điểm, theo quan điểm của chúng tôi, chứ không phải khuyết điểm''.
+
+\paragraph{Benchmark không đo hiệu năng trong ngữ cảnh triển khai thật.}
+Bean và cộng sự~\cite{measuring_what_matters} nhấn mạnh tầm quan trọng của ecological validity --- mức độ benchmark phản ánh bối cảnh sử dụng thực tế. Tuy nhiên, dưới 10\% benchmark sử dụng tác vụ thực tế hoàn chỉnh; khoảng cách giữa hiệu năng trên benchmark và hiệu năng trong triển khai thật có thể rất lớn.
+
+\paragraph{Benchmark không kiểm soát hoàn toàn các yếu tố gây nhiễu.}
+Các tác vụ phụ (auxiliary tasks) như instruction following, output formatting hay arithmetic có thể ảnh hưởng đến kết quả đo construct chính~\cite{measuring_what_matters}. Nếu không kiểm soát các yếu tố này, điểm số phản ánh sự kết hợp của nhiều năng lực, không phải construct mục tiêu.
+
+\subsection{Cảnh báo từ góc nhìn construct validity}
+
+Kết hợp hai bài nghiên cứu chính, ta có thể rút ra các cảnh báo quan trọng:
+
+\begin{enumerate}
+    \item Raji và cộng sự~\cite{everything_benchmark} cảnh báo rằng ``xu hướng hiện tại mở rộng không phù hợp mô hình CTF sang tác vụ hiệu năng trừu tượng, tách rời khỏi mục tiêu thực tế hay ngữ cảnh'', và rằng điều này ``thực sự cho phép việc quảng bá --- thay vì phản bác --- các tuyên bố về hào nhoáng và lừa dối hơn là tiến bộ thực chất''; benchmark cần được ``phát triển, trình bày và hiểu đúng như thiết kế ban đầu --- để đánh giá các tác vụ cụ thể, có phạm vi rõ ràng và gắn với ngữ cảnh''.
+    
+    \item ``Đo đúng điều quan trọng'' đòi hỏi ``nỗ lực có ý thức, bền bỉ từ cộng đồng nghiên cứu để ưu tiên construct validity, thúc đẩy chuyển đổi văn hóa hướng tới validation rõ ràng và nghiêm ngặt hơn cho các phương pháp đánh giá''~\cite{measuring_what_matters}.
+\end{enumerate}

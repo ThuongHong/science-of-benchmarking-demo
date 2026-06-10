@@ -1,0 +1,61 @@
+\section{Thiết kế demo thực nghiệm}
+\label{sec:demo_design}
+
+\subsection{Mục tiêu và triết lý thiết kế}
+
+Demo có tên \textbf{Mini Benchmark Evaluator}. Điểm khác biệt cốt lõi so với một
+bài ``so sánh model'' thông thường: \emph{nhóm không xếp hạng model như mục
+tiêu cuối}. Thay vào đó, nhóm dùng nhiều model như những \emph{đầu dò} để
+\textbf{soi chính phép đo} --- benchmark có đo đúng thứ nó tuyên bố, điểm số có ý
+nghĩa, và thứ hạng có ổn định không. Đây là hiện thực hoá trực tiếp tinh thần
+\emph{Measuring what Matters}~\cite{measuring_what_matters} và bộ tiêu chí
+\emph{BetterBench}~\cite{betterbench}.
+
+Một quyết định thiết kế then chốt: thay vì \emph{tự chế} một benchmark đồ chơi
+(dễ nhưng không thuyết phục), nhóm lấy \textbf{hai benchmark công khai có
+thật} --- MMLU và GSM8K --- rồi áp bộ công cụ phân tích phê phán của tutorial lên
+chúng. Nhờ vậy mọi hiện tượng quan sát được (bão hoà, nhiễm dữ liệu, độ giòn của
+metric) là \emph{thật}, không phải dàn dựng.
+
+\subsection{Kiến trúc hệ thống}
+
+Hệ thống tách bạch theo trách nhiệm để dễ tái lập và kiểm tra (Hình~\ref{fig:arch}
+mô tả luồng):
+
+\begin{description}
+  \item[\texttt{config.py}] Khai báo tập con dữ liệu (kích thước, seed) và danh
+    sách \emph{systems} (6 model + 2 baseline). Thêm/bớt model = sửa một danh sách.
+  \item[\texttt{data.py}] Tải MMLU + GSM8K từ Hugging Face, lấy tập con cố định
+    theo seed, ghi ra \texttt{data/*.jsonl}.
+  \item[\texttt{perturb.py}] Sinh ``bản sinh đôi'' nhiễu giữ nhãn của câu MMLU
+    (đảo vị trí đáp án; chèn distractor ``None of the above'') để đo robustness.
+  \item[\texttt{models.py}] \texttt{HFRunner} chạy mô hình Hugging Face ở chế độ
+    4-bit; \texttt{BaselineRunner} (random/majority); \texttt{FakeRunner} (test
+    pipeline không GPU). Mọi lời gọi đi qua một \emph{cache} theo
+    \texttt{sha256(model\_id, prompt)}.
+  \item[\texttt{evaluate.py}] Vòng lặp đánh giá: nạp \emph{từng} model một, chạy
+    hết item, giải phóng GPU, sang model kế tiếp; ghi \texttt{results/per\_item.csv}.
+  \item[\texttt{analysis.py}] Từ \texttt{per\_item.csv} sinh toàn bộ bảng số và
+    biểu đồ.
+\end{description}
+
+\begin{figure}[t]
+  \centering
+  % Thay bằng sơ đồ kiến trúc nếu có; tạm mô tả bằng pipeline văn bản.
+  \fbox{\parbox{0.92\linewidth}{\centering\small
+    \texttt{config} $\to$ \texttt{data}/\texttt{perturb} $\to$
+    \texttt{evaluate} (nạp 1 model $\to$ cache/generate $\to$ unload) $\to$
+    \texttt{per\_item.csv} $\to$ \texttt{analysis} $\to$ bảng + hình}}
+  \caption{Luồng xử lý của Mini Benchmark Evaluator. Mỗi model được nạp và giải
+  phóng độc lập nên cả 6 model chạy gọn trên một GPU T4 free.}
+  \label{fig:arch}
+\end{figure}
+
+\subsection{Liên hệ với sáu paper}
+
+Thiết kế demo được neo có chủ đích vào cả sáu paper: phủ \emph{hẹp} của benchmark
+(Raji), tách \emph{metric} khỏi \emph{construct} và dùng baseline (Measuring what
+Matters), đủ README/metric/baseline/visualize/tái lập (BetterBench), gộp nhiều
+nhóm task thành một suite nhỏ (GLUE), thêm perturbation đo robustness khi đề bão
+hoà (SuperGLUE), và chấm bằng \emph{trích xuất + so giá trị} thay vì so chuỗi thô
+(tinh thần execution-based của SWE-bench).

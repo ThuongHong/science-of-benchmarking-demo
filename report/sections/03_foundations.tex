@@ -1,0 +1,231 @@
+% ===========================================================================
+% File: sections/03_foundations.tex
+% Phần 3: Kiến thức nền về benchmark và đo lường
+% Thuộc tutorial: The Science of Benchmarking — What's Measured, What's Missing, What's Next
+% Thành viên 1: Nền tảng benchmarking và câu hỏi "Benchmark đo cái gì?"
+% ===========================================================================
+
+\section{Kiến thức nền về benchmark và đo lường}
+\label{sec:foundations}
+
+Phần này trình bày các khái niệm nền tảng cần thiết để phân tích benchmark một cách có hệ thống. Các khái niệm được giải thích trong bối cảnh đánh giá AI/ML và benchmark LLM. Trọng tâm của phần này là làm rõ benchmark không chỉ là một tập dữ liệu, mà là một cấu hình đo lường gồm tác vụ, dữ liệu, metric, quy trình đánh giá, giả định diễn giải và các điều kiện ảnh hưởng đến ý nghĩa của điểm số.
+
+\subsection{Benchmark và dataset: Sự khác biệt cơ bản}
+\label{sec:benchmark_vs_dataset}
+
+Trong thực tiễn, thuật ngữ ``benchmark'' và ``dataset'' thường được sử dụng thay thế cho nhau. Tuy nhiên, hai khái niệm này có phạm vi và bản chất khác nhau.
+
+\textbf{Dataset} là một tập hợp dữ liệu --- bao gồm các mẫu đầu vào, nhãn hoặc đầu ra mong đợi --- được thu thập và tổ chức cho một mục đích cụ thể. Dataset tự nó chỉ là nguyên liệu; nó không định nghĩa cách đánh giá, không chỉ định metric, và không đi kèm đầy đủ các giả định về năng lực nào đang được đo.
+
+\textbf{Benchmark} là một cấu hình đánh giá hoàn chỉnh, bao gồm nhiều thành phần được thiết kế có chủ đích để đo lường hiệu năng của hệ thống trên một tác vụ hoặc năng lực cụ thể. Raji và cộng sự~\cite{everything_benchmark} định nghĩa benchmark là ``một sự kết hợp cụ thể của dataset (ít nhất là dữ liệu kiểm tra, đôi khi cả dữ liệu huấn luyện) và metric, được khái niệm hóa như đại diện cho một hoặc nhiều tác vụ hoặc tập hợp năng lực cụ thể, được cộng đồng nghiên cứu chấp nhận như khung tham chiếu chung để so sánh phương pháp''. Bean và cộng sự~\cite{measuring_what_matters} bổ sung rằng benchmark bao gồm \textit{task} (tác vụ) và \textit{metric} (thước đo) được sử dụng cùng nhau để đại diện cho một \textit{phenomenon} (hiện tượng) cần đo.
+
+Nói cách khác, dataset là một thành phần của benchmark, nhưng không tương đương với benchmark. Một benchmark chỉ hình thành đầy đủ khi dữ liệu được đặt trong một cấu hình đánh giá có tác vụ, metric, protocol và cách diễn giải điểm số.
+
+\subsection{Các thành phần cốt lõi của benchmark}
+\label{sec:benchmark_components}
+
+Một benchmark hoàn chỉnh thường bao gồm các thành phần sau:
+
+\begin{itemize}
+    \item \textbf{Task} (tác vụ): Đặc tả cụ thể của vấn đề cần giải quyết, được hiện thực hóa trong dataset~\cite{everything_benchmark}.
+    \item \textbf{Data} (dữ liệu): Tập hợp các mẫu kiểm tra, đôi khi bao gồm cả dữ liệu huấn luyện.
+    \item \textbf{Metric} (thước đo): Cách tổng hợp hiệu năng hệ thống thành một con số hoặc điểm số~\cite{everything_benchmark}.
+    \item \textbf{Protocol} (quy trình đánh giá): Các quy tắc về cách thức tiến hành đánh giá.
+    \item \textbf{Assumptions} (giả định): Các giả định ngầm về năng lực nào đang được đo và bối cảnh áp dụng.
+    \item \textbf{Interpretation} (diễn giải): Cách thức điểm số được hiểu và sử dụng~\cite{measuring_what_matters}.
+\end{itemize}
+
+Các thành phần này cho thấy benchmark là một hệ thống đo lường. Do đó, khi phân tích một benchmark, không thể chỉ xem xét dữ liệu kiểm tra hoặc điểm số cuối cùng, mà cần xem xét toàn bộ cấu hình đánh giá và các giả định đứng sau nó.
+
+% Bảng tổng hợp các khái niệm nền tảng
+% Yêu cầu package: longtable, booktabs, needspace
+\Needspace{10\baselineskip}
+
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.2}
+
+\begin{longtable}{p{4cm} p{12cm}}
+\caption{Tổng hợp các khái niệm nền tảng trong benchmark và đo lường AI/ML.}
+\label{tab:concepts} \\
+
+\toprule
+\textbf{Khái niệm} & \textbf{Giải thích} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Khái niệm} & \textbf{Giải thích} \\
+\midrule
+\endhead
+
+Benchmark &
+Cấu hình đánh giá hoàn chỉnh gồm dataset, task, metric, protocol và giả định diễn giải; được cộng đồng sử dụng để so sánh phương pháp~\cite{everything_benchmark, measuring_what_matters}. \\
+\addlinespace
+
+Dataset &
+Tập hợp dữ liệu gồm đầu vào, nhãn hoặc đầu ra mong đợi; là thành phần của benchmark nhưng không tương đương benchmark. \\
+\addlinespace
+
+Task &
+Đặc tả tác vụ mà hệ thống cần thực hiện; task là cầu nối giữa dữ liệu cụ thể và năng lực hoặc hiện tượng mà benchmark muốn đại diện~\cite{everything_benchmark, measuring_what_matters}. \\
+\addlinespace
+
+Metric &
+Cách thức tổng hợp hiệu năng hệ thống trên tập mẫu thành một con số tóm tắt; ví dụ: accuracy, F1-score, exact match~\cite{everything_benchmark}. \\
+\addlinespace
+
+Evaluation protocol &
+Tập hợp các quy tắc và điều kiện tiến hành đánh giá, bao gồm định dạng đầu ra, số lượng lần chạy, cách xử lý câu trả lời, và các ràng buộc kỹ thuật khác. \\
+\addlinespace
+
+Construct &
+Khái niệm trừu tượng hoặc năng lực mà benchmark định đo; ví dụ: \textit{reasoning}, \textit{safety}, \textit{robustness}~\cite{measuring_what_matters}. \\
+\addlinespace
+
+Construct validity &
+Mức độ mà điểm benchmark cung cấp bằng chứng hợp lệ cho các nhận định về construct mục tiêu~\cite{measuring_what_matters, everything_benchmark}. \\
+\addlinespace
+
+Validity &
+Tính chất phản ánh liệu phép đo có thực sự đo đúng điều cần đo hay không; bao gồm face validity, content validity, predictive validity, convergent validity và discriminant validity~\cite{measuring_what_matters}. \\
+\addlinespace
+
+Reliability &
+Tính chất phản ánh liệu kết quả đo có ổn định và lặp lại được hay không khi thực hiện trong các điều kiện tương tự~\cite{everything_benchmark}. \\
+\addlinespace
+
+Reproducibility &
+Khả năng tái tạo kết quả đánh giá khi sử dụng cùng dữ liệu, mô hình và protocol bởi các nhóm nghiên cứu khác nhau. \\
+\addlinespace
+
+Statistical significance &
+Đánh giá xem sự khác biệt trong điểm số giữa các mô hình có đáng tin cậy, không chỉ là kết quả của nhiễu ngẫu nhiên, hay không~\cite{measuring_what_matters}. \\
+\addlinespace
+
+Data contamination &
+Hiện tượng dữ liệu đánh giá xuất hiện trong dữ liệu huấn luyện hoặc quá trình tinh chỉnh mô hình, làm suy giảm tính hợp lệ của kết quả~\cite{measuring_what_matters}. \\
+\addlinespace
+
+Benchmark overfitting &
+Hiện tượng mô hình hoặc cộng đồng tối ưu hóa quá mức trên một benchmark cụ thể, dẫn đến điểm số cao nhưng không phản ánh đầy đủ năng lực ngoài benchmark~\cite{everything_benchmark, measuring_what_matters}. \\
+\addlinespace
+
+Goodhart's Law &
+Khi một thước đo trở thành mục tiêu tối ưu hóa, nó mất dần giá trị như thước đo đáng tin cậy. \\
+\bottomrule
+\end{longtable}
+
+\normalsize
+
+\subsection{Metric và evaluation protocol}
+\label{sec:metric_protocol}
+
+Metric và evaluation protocol là hai thành phần vận hành trực tiếp của benchmark. Metric xác định cách lượng hóa kết quả, trong khi protocol xác định điều kiện mà kết quả đó được tạo ra. Vì vậy, cùng một dataset có thể dẫn đến các kết luận khác nhau nếu metric hoặc protocol thay đổi.
+
+\subsubsection{Metric: Cách lượng hóa, không phải bảo đảm}
+\label{sec:metric}
+
+Metric là thành phần thiết yếu của benchmark, cung cấp cách thức lượng hóa hiệu năng hệ thống. Raji và cộng sự~\cite{everything_benchmark} định nghĩa metric là ``cách tổng hợp hiệu năng hệ thống trên một tập hoặc các tập tác vụ thành một con số hoặc điểm số đơn lẻ''. Trong khảo sát 445 benchmark LLM, Bean và cộng sự~\cite{measuring_what_matters} phát hiện rằng metric phổ biến nhất là exact match, được sử dụng ít nhất một phần bởi 81,3\% benchmark, tiếp theo là soft match với 20,9\%, LLM-as-a-judge với 17,1\% và đánh giá bởi con người với 13,0\%.
+
+Tuy nhiên, metric chỉ là cách lượng hóa kết quả; nó không tự động bảo đảm rằng benchmark đo đúng năng lực cần đo. Wagstaff~\cite{everything_benchmark} cảnh báo rằng việc sử dụng cùng loại metric, ví dụ accuracy, trên các tác vụ khác nhau tạo ra ``ảo ảnh về tính so sánh xuyên miền'', trong khi thực tế ý nghĩa của cùng mức accuracy có thể khác nhau giữa các bối cảnh. Ngoài ra, chỉ 16,0\% benchmark trong khảo sát sử dụng các phương pháp thống kê như uncertainty estimates hoặc statistical tests để so sánh kết quả giữa các mô hình~\cite{measuring_what_matters}.
+
+Do đó, metric cần được hiểu như một phép tóm tắt hiệu năng có điều kiện, không phải một bảo đảm tuyệt đối về năng lực của hệ thống.
+
+\subsubsection{Evaluation protocol và ảnh hưởng đến ý nghĩa điểm số}
+\label{sec:protocol}
+
+Evaluation protocol bao gồm cách thức trình bày tác vụ, định dạng đầu ra yêu cầu, số lượng lần chạy, cách xử lý kết quả và các ràng buộc kỹ thuật khác. Protocol có ảnh hưởng trực tiếp đến ý nghĩa điểm số vì nó xác định môi trường mà mô hình được đánh giá.
+
+Bean và cộng sự~\cite{measuring_what_matters} chỉ ra rằng 21,1\% benchmark yêu cầu định dạng đầu ra cụ thể, tức structured output. Bản thân việc tuân thủ định dạng này đã có thể là một thử thách đối với mô hình, tách biệt khỏi năng lực mà benchmark định đo. Ví dụ, nếu một benchmark về reasoning yêu cầu đầu ra JSON, điểm số thấp có thể phản ánh khó khăn trong việc tạo JSON hơn là thiếu năng lực reasoning. Tương tự, các hướng dẫn phức tạp có thể làm giảm không cân xứng hiệu năng của các mô hình yếu hơn.
+
+Vì vậy, khi diễn giải điểm benchmark, cần xem xét liệu điểm số phản ánh năng lực mục tiêu hay phản ánh các yêu cầu phụ do protocol tạo ra.
+
+\subsection{Construct, validity và reliability}
+\label{sec:construct_validity_reliability}
+
+Một benchmark không chỉ tạo ra điểm số, mà còn tạo ra cơ sở để đưa ra nhận định về năng lực của hệ thống. Vì vậy, câu hỏi quan trọng không chỉ là ``mô hình đạt bao nhiêu điểm'', mà là ``điểm số đó có hỗ trợ hợp lệ cho nhận định nào về mô hình''.
+
+\subsubsection{Construct và construct validity}
+\label{sec:construct_validity}
+
+\textbf{Construct} là khái niệm trừu tượng hoặc năng lực mà benchmark định đo, chẳng hạn như \textit{reasoning}, \textit{safety}, \textit{robustness}, \textit{factuality} hoặc \textit{general language understanding}~\cite{measuring_what_matters}. Trong benchmark AI/ML, construct thường không thể đo trực tiếp. Thay vào đó, benchmark sử dụng các task, dataset và metric cụ thể để đại diện cho construct đó.
+
+\textbf{Construct validity} là mức độ mà điểm benchmark cung cấp bằng chứng hợp lệ cho các nhận định về construct mục tiêu~\cite{measuring_what_matters, everything_benchmark}. Nếu một benchmark được tuyên bố là đo reasoning, nhưng các câu hỏi có thể được giải bằng ghi nhớ mẫu, heuristic bề mặt hoặc dữ liệu đã bị contamination, thì construct validity của benchmark bị suy giảm.
+
+Khái niệm này đặc biệt quan trọng trong bối cảnh LLM vì các benchmark thường được dùng để đưa ra nhận định rộng về năng lực mô hình. Một điểm số cao trên một tập tác vụ cụ thể không tự động chứng minh rằng mô hình sở hữu đầy đủ construct trừu tượng mà benchmark muốn đại diện. Do đó, phân tích construct validity giúp tránh việc diễn giải quá mức điểm số benchmark.
+
+\subsubsection{Reliability và validity}
+\label{sec:reliability_validity}
+
+\textbf{Reliability} (độ tin cậy) và \textbf{validity} (tính hợp lệ) là hai chiều khác nhau và bổ sung cho nhau trong đánh giá chất lượng benchmark:
+
+\begin{itemize}
+    \item \textbf{Reliability} trả lời câu hỏi: \textit{Kết quả có ổn định và lặp lại được không?} Một benchmark có reliability cao sẽ cho kết quả tương tự khi được chạy lại trong cùng điều kiện.
+    \item \textbf{Validity} trả lời câu hỏi: \textit{Kết quả có thực sự đo đúng điều cần đo không?} Một benchmark có thể có reliability cao, tức cho kết quả ổn định, nhưng validity thấp, tức đo sai hoặc diễn giải sai năng lực mục tiêu.
+\end{itemize}
+
+Raji và cộng sự~\cite{everything_benchmark} phân biệt rõ rằng nếu reproducibility và reliability liên quan đến tính chính xác và khả năng lặp lại đáng tin cậy của một phát hiện, thì thách thức về validity trong ML tập trung vào mức độ các đánh giá phản ánh đúng hành vi thực tế được dự kiến của hệ thống trong thế giới thực. Nói cách khác, reliability là điều kiện cần nhưng không đủ cho validity.
+
+Trong đánh giá benchmark, điều này có nghĩa là một leaderboard ổn định không nhất thiết là một leaderboard có ý nghĩa. Nếu benchmark đo sai construct, sử dụng metric không phù hợp, hoặc chứa dữ liệu bị contamination, kết quả có thể lặp lại nhưng vẫn không hỗ trợ hợp lệ cho các kết luận về năng lực mô hình.
+
+\subsubsection{Reproducibility}
+\label{sec:reproducibility}
+
+\textbf{Reproducibility} (tính tái tạo) liên quan đến khả năng các nhóm nghiên cứu độc lập có thể tái tạo kết quả benchmark khi sử dụng cùng dữ liệu, mô hình và protocol. Trong bối cảnh LLM, reproducibility đặc biệt quan trọng vì các kết quả benchmark thường được sử dụng để so sánh mô hình, xây dựng leaderboard và định hướng nghiên cứu.
+
+Tuy nhiên, reproducibility cũng đặc biệt thách thức trong đánh giá LLM do sự nhạy cảm của mô hình với chi tiết protocol, cách thiết kế prompt, số lần chạy, seed ngẫu nhiên, phiên bản mô hình, post-processing và quy tắc chấm điểm~\cite{measuring_what_matters}. Nếu các yếu tố này không được mô tả đầy đủ, các nhóm khác khó có thể tái tạo kết quả hoặc kiểm chứng tuyên bố của benchmark.
+
+Do đó, reproducibility không chỉ là yêu cầu kỹ thuật, mà còn là điều kiện nền tảng để kết quả benchmark có thể được kiểm tra độc lập.
+
+\subsection{Statistical significance trong benchmark}
+\label{sec:statistical_significance}
+
+Khi so sánh hiệu năng giữa các mô hình, sự khác biệt trong điểm số cần được đánh giá xem có ý nghĩa thống kê hay chỉ là kết quả của nhiễu ngẫu nhiên. Điều này đặc biệt quan trọng trong leaderboard, nơi các mô hình thường được xếp hạng dựa trên chênh lệch điểm số nhỏ.
+
+Bean và cộng sự~\cite{measuring_what_matters} phát hiện rằng chỉ 16,0\% benchmark LLM được khảo sát sử dụng bất kỳ phương pháp kiểm định thống kê nào. Điều này có nghĩa là phần lớn các tuyên bố về ``mô hình A tốt hơn mô hình B'' trên leaderboard có thể không được hỗ trợ bởi bằng chứng thống kê đầy đủ. Khi thiếu uncertainty estimates hoặc statistical tests, việc so sánh mô hình trở nên kém đáng tin cậy và dễ bị ảnh hưởng bởi biến động ngẫu nhiên.
+
+Vì vậy, statistical significance đóng vai trò bảo vệ việc diễn giải điểm số khỏi các kết luận quá mức. Một benchmark có điểm số rõ ràng nhưng không cung cấp độ bất định có thể tạo cảm giác chính xác giả tạo.
+
+\subsection{Các rủi ro làm suy giảm giá trị benchmark}
+\label{sec:benchmark_risks}
+
+Ngay cả khi benchmark được thiết kế tốt, giá trị đo lường của nó vẫn có thể suy giảm theo thời gian hoặc trong quá trình sử dụng. Ba rủi ro quan trọng trong bối cảnh AI/ML benchmarking là data contamination, benchmark overfitting và Goodhart's Law.
+
+\subsubsection{Data contamination}
+\label{sec:data_contamination}
+
+\textbf{Data contamination} xảy ra khi dữ liệu đánh giá hoặc dữ liệu rất tương tự xuất hiện trong dữ liệu huấn luyện hoặc quá trình tinh chỉnh mô hình. Trong bối cảnh LLM được huấn luyện trên khối lượng dữ liệu internet rất lớn, khả năng contamination là cao, ngay cả khi các nhà phát triển hành động thiện chí.
+
+Bean và cộng sự~\cite{measuring_what_matters} nhấn mạnh rằng contamination có thể xảy ra cả dưới dạng trực tiếp, khi benchmark items xuất hiện trong training data, và gián tiếp, khi mô hình đã memorize thông tin liên quan chặt chẽ. Ví dụ, với benchmark GSM8K, bằng chứng cho thấy contamination đã góp phần vào sự gia tăng điểm số theo thời gian~\cite{measuring_what_matters}.
+
+Data contamination làm suy giảm tính hợp lệ của benchmark vì điểm số có thể phản ánh khả năng ghi nhớ hoặc tiếp xúc trước với dữ liệu thay vì năng lực giải quyết tác vụ mới.
+
+\subsubsection{Benchmark overfitting}
+\label{sec:benchmark_overfitting}
+
+\textbf{Benchmark overfitting} là hiện tượng mô hình hoặc cộng đồng tối ưu quá mức trên một benchmark cụ thể, dẫn đến điểm số cao nhưng không phản ánh đầy đủ năng lực trong các tình huống ngoài benchmark.
+
+Bean và cộng sự~\cite{measuring_what_matters} mô tả rằng khi một benchmark được sử dụng rộng rãi, nỗ lực liên tục cải thiện trên benchmark đó khiến các kỹ thuật mới phát triển trở nên đặc biệt phù hợp để giải quyết tác vụ đó. Theo thời gian, sự chọn lọc phương pháp này có thể dẫn đến overfitting, tương tự như việc sử dụng lặp lại tập validation. Raji và cộng sự~\cite{everything_benchmark} cũng cảnh báo rằng benchmark ảnh hưởng đến hướng phát triển thuật toán của cả lĩnh vực, tạo ra vòng phản hồi nơi cộng đồng tập trung vào các phương pháp hoạt động tốt trên benchmark mà bỏ qua các vấn đề và phương pháp thay thế.
+
+Benchmark overfitting khác với data contamination. Contamination liên quan đến việc dữ liệu đánh giá bị lộ vào quá trình huấn luyện hoặc tinh chỉnh, trong khi overfitting liên quan đến việc mô hình, phương pháp hoặc cộng đồng nghiên cứu được tối ưu hóa lặp lại theo một mục tiêu benchmark cụ thể.
+
+\subsubsection{Goodhart's Law trong bối cảnh benchmark}
+\label{sec:goodharts_law}
+
+\textbf{Goodhart's Law} phát biểu rằng khi một thước đo trở thành mục tiêu tối ưu hóa, nó mất dần giá trị như một thước đo đáng tin cậy. Trong bối cảnh AI benchmarking, Goodhart's Law biểu hiện ở nhiều cấp độ:
+
+\begin{itemize}
+    \item Khi mô hình được tối ưu trực tiếp hoặc gián tiếp để đạt điểm cao trên benchmark, điểm số không còn phản ánh đầy đủ năng lực thực sự mà trở thành kết quả của quá trình tối ưu hóa có mục tiêu.
+    \item Khi cộng đồng tập trung vào một số ít benchmark, hướng nghiên cứu bị thu hẹp và các phương pháp được phát triển chủ yếu để cải thiện điểm số trên benchmark cụ thể~\cite{everything_benchmark}.
+    \item Benchmark bị ``bão hòa'' (saturated) nhanh chóng, buộc cộng đồng phải tạo benchmark mới, nhưng vòng lặp tương tự có thể lặp lại~\cite{measuring_what_matters}.
+\end{itemize}
+
+Goodhart's Law kết nối chặt chẽ với data contamination và benchmark overfitting. Cả ba hiện tượng đều phản ánh cách thức mà việc tập trung quá mức vào một thước đo cụ thể có thể làm suy giảm giá trị đo lường của nó. Vì vậy, benchmark cần được xem như công cụ hỗ trợ đánh giá có điều kiện, không phải thước đo tuyệt đối cho năng lực của hệ thống.
+
+\subsection{Kết luận phần kiến thức nền}
+\label{sec:foundations_conclusion}
+
+Các khái niệm trên tạo nền tảng để phân tích benchmark một cách có hệ thống. Benchmark không chỉ là dataset, mà là một cấu hình đo lường gồm task, data, metric, protocol và các giả định diễn giải. Chất lượng của benchmark phụ thuộc vào nhiều yếu tố: metric có phù hợp hay không, protocol có gây nhiễu hay không, construct có được đại diện hợp lệ hay không, kết quả có reliability và reproducibility hay không, và các so sánh có được hỗ trợ bởi bằng chứng thống kê hay không.
+
+Trong bối cảnh LLM, các rủi ro như data contamination, benchmark overfitting và Goodhart's Law làm cho việc diễn giải điểm số trở nên phức tạp hơn. Vì vậy, điểm benchmark cần được hiểu như bằng chứng có điều kiện về hiệu năng trong một cấu hình đánh giá cụ thể, thay vì bằng chứng tuyệt đối về năng lực tổng quát của mô hình.

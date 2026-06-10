@@ -183,18 +183,29 @@ def mmlu_by_subject(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def fig_mmlu_subjects(tab: pd.DataFrame) -> None:
+    """Compact view of the construct-validity point: one box per model showing
+    the spread of its accuracy *across subjects*. Wide whiskers = a single
+    'MMLU accuracy' hides very different per-subject competence. (Plotting 57
+    noisy per-subject bars was both ugly and tall; a per-model boxplot makes
+    the spread legible in one small figure.)"""
     if tab.empty:
         return
     sys_cols = [c for c in tab.columns if c not in ("subject", "n_items")]
-    best = max(sys_cols, key=lambda c: tab[c].mean())
-    t = tab.sort_values(best, ascending=True)
-    fig, ax = plt.subplots(figsize=(8, max(6, 0.28 * len(t))))
-    ax.barh(t["subject"], t[best], color="#3b7dd8")
-    ax.axvline(0.25, ls="--", lw=1, color="#888", label="random (0.25)")
-    ax.set_xlim(0, 1.05)
-    ax.set_xlabel(f"{best} accuracy")
+    order = sorted(sys_cols, key=lambda c: tab[c].mean(), reverse=True)
+    data = [tab[c].values for c in order]
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    bp = ax.boxplot(data, tick_labels=order, showmeans=True,
+                    patch_artist=True, medianprops=dict(color="#13315c"),
+                    meanprops=dict(marker="D", markerfacecolor="#d1495b",
+                                   markeredgecolor="#d1495b", markersize=5))
+    for patch in bp["boxes"]:
+        patch.set_facecolor("#cfe0f5")
+    ax.axhline(0.25, ls="--", lw=1, color="#888", label="random (0.25)")
+    ax.set_ylim(-0.05, 1.05)
+    ax.set_ylabel("per-subject accuracy")
     ax.set_title("One 'MMLU score' hides large per-subject variance")
-    ax.legend(loc="lower right")
+    ax.legend(loc="lower right", fontsize=8)
+    plt.setp(ax.get_xticklabels(), rotation=20, ha="right", fontsize=8)
     plt.tight_layout()
     plt.savefig(FIG / "mmlu_by_subject.png", dpi=150)
     plt.close()

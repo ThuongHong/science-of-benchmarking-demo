@@ -1,0 +1,60 @@
+\Needspace{10\baselineskip}
+
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.2}
+
+\begin{longtable}{p{2.2cm} p{3.6cm} p{10.2cm}}
+\caption{Phân công công việc và mức độ hoàn thành của các thành viên trong tutorial “The Science of Benchmarking”.}
+\label{tab:work_distribution_benchmarking} \\
+
+\toprule
+\textbf{MSSV} & \textbf{Họ và tên} & \textbf{Phần đóng góp} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{MSSV} & \textbf{Họ và tên} & \textbf{Phần đóng góp} \\
+\midrule
+\endhead
+
+23120048 & Phan Hoàng Quốc Huy &
+\textbf{Nền tảng benchmarking và “What’s Measured”.}
+Phụ trách giới thiệu tổng quan, bối cảnh AI/ML benchmarking, các khái niệm nền (metric, dataset, evaluation protocol, construct validity, data contamination, Goodhart’s Law…).
+Viết các mục 01--05 của báo cáo (\texttt{01\_introduction.tex} -- \texttt{05\_whats\_measured.tex}); thiết kế slide 1--12.
+Paper chính: \emph{AI and the Everything in the Whole Wide World Benchmark}, \emph{Measuring what Matters}.
+Hoàn thành 100\% nội dung nền tảng và Q\&A. \\
+\addlinespace
+
+23120030 & Trần Thanh Đạt &
+\textbf{Chất lượng benchmark và case study truyền thống.}
+Trình bày tiêu chí benchmark tốt, khung BetterBench để đánh giá chất lượng benchmark, phân tích case study GLUE (benchmark suite NLU cổ điển).
+Viết các mục 06--08 (\texttt{06\_benchmark\_quality.tex} -- \texttt{08\_glue.tex}); slide 13--18.
+Paper chính: \emph{BetterBench}, \emph{GLUE}.
+Hoàn thành 100\% phần đánh giá benchmark và GLUE. \\
+\addlinespace
+
+23122006 & Lưu Thượng Hồng &
+\textbf{SuperGLUE và “What’s Missing”.}
+Phân tích hiện tượng bão hòa benchmark (saturation, ceiling effect), lý do ra đời SuperGLUE, tổng hợp những hạn chế còn thiếu của benchmark hiện tại (data, measurement, systemic, epistemic issues).
+Viết các mục 09--11 (\texttt{09\_superglue.tex} -- \texttt{11\_discussion.tex}); slide 19--24.
+Paper chính: \emph{SuperGLUE}, kết hợp \emph{BetterBench}.
+Hoàn thành 100\% phần SuperGLUE và nhận diện các vấn đề chưa được giải quyết. \\
+\addlinespace
+
+23120041 & Lê Minh Hải &
+\textbf{Benchmark thế hệ mới và SWE-bench.}
+Giới thiệu xu hướng real‑world và agentic benchmark; phân tích case study SWE-bench (đánh giá mô hình ngôn ngữ trên GitHub issues thực tế).
+Thiết kế cấu trúc demo đa tác vụ mô phỏng ý tưởng từ GLUE, SuperGLUE và SWE-bench.
+Viết mục 12--13 (\texttt{12\_whats\_next.tex}, \texttt{13\_swe\_bench.tex}) và phần mô tả tổng quan demo trong mục 14; slide 25--28.
+Hoàn thành 100\% nội dung “What’s Next” và kiến trúc demo. \\
+\addlinespace
+
+23120088 & Cao Tiến Thành &
+\textbf{Thực nghiệm, kết quả và hoàn thiện sản phẩm.}
+Xây dựng dataset nhỏ cho demo, cài đặt metric (accuracy, exact match, pass/fail, robustness), viết mã nguồn (\texttt{run\_evaluation.py}, \texttt{metrics.py}, \texttt{visualize.py}), chạy thực nghiệm trên ít nhất hai model/prompt.
+Viết các mục 14--20 (\texttt{14\_demo\_design.tex} -- \texttt{20\_reproducibility.tex}); slide 29--34; soạn README, \texttt{requirements.txt}, đóng gói toàn bộ thư mục demo và kiểm tra khả năng tái lập.
+Hoàn thành 100\% demo, kết quả định lượng/định tính, biểu đồ và tài liệu hướng dẫn. \\
+\bottomrule
+
+\end{longtable}

@@ -1,0 +1,66 @@
+\section{Metric đánh giá}
+\label{sec:metrics}
+
+Demo cố ý dùng các metric \emph{đơn giản, minh bạch} --- vì mục tiêu không phải
+``đo cho sướng'' mà là \emph{soi xem chính cách chấm có vững không}. Đây là chỗ
+demo bám sát thông điệp ``metric $\neq$ construct'' của
+\emph{Measuring what Matters}~\cite{measuring_what_matters}.
+
+\subsection{MMLU --- khớp chữ cái đáp án}
+
+Với MMLU, mô hình được yêu cầu trả lời một chữ cái. Hàm \texttt{extract\_letter}
+trích chữ cái \texttt{A/B/C/D} đầu tiên hợp lệ từ đầu ra rồi so với đáp án đúng.
+Hai đại lượng được ghi cho mỗi câu:
+
+\begin{itemize}
+  \item \textbf{correct}: trích được chữ cái \emph{và} đúng.
+  \item \textbf{coverage}: có \emph{trích được} một chữ cái hay không (bất kể
+    đúng/sai). Câu không trích được = mô hình bị phạt vì \emph{format}, không phải
+    vì \emph{sai kiến thức} --- một nguồn nhiễu đo lường thường bị bỏ qua.
+\end{itemize}
+
+\subsection{GSM8K --- trích số rồi so giá trị, và một ``công tắc'' giòn}
+
+Đây là phần thú vị nhất về mặt đo lường. Đáp án GSM8K là một số, nhưng mô hình
+sinh ra cả một \emph{chuỗi suy luận} chứa nhiều số trung gian. Câu hỏi: chấm thế
+nào? Nhóm cài \emph{hai} bộ chấm khác nhau \textbf{đúng một quyết định}:
+
+\begin{itemize}
+  \item \texttt{extract\_number\_robust} --- lấy số \textbf{cuối cùng} trong đầu
+    ra (đáp án thường nằm cuối lời giải).
+  \item \texttt{extract\_number\_naive} --- lấy số \textbf{đầu tiên}. Đây mô phỏng
+    lỗi thực tế kinh điển khi lập trình viên viết \verb|re.search(r"\d+", out)|:
+    nó tóm trúng một số trung gian giữa chuỗi suy luận thay vì đáp án.
+\end{itemize}
+
+Hai hàm \emph{chuẩn hoá số y hệt nhau} (bỏ dấu phẩy, \$, khoảng trắng); khác biệt
+\emph{duy nhất} là vị trí lấy số. Nhờ vậy mọi chênh lệch điểm giữa hai bộ chấm
+\emph{hoàn toàn} đến từ một lựa chọn cài đặt, không phải từ năng lực mô hình. Ta
+định nghĩa:
+\[
+  \texttt{n\_robust\_only} = \#\{\text{câu mà bộ chấm \emph{robust} tính đúng nhưng
+  bộ \emph{naive} tính sai}\}.
+\]
+Đại lượng này lượng hoá trực tiếp \emph{độ giòn của metric}: cùng một đầu ra của
+mô hình, chỉ đổi cách trích số là điểm sập (Phần~\ref{sec:results},~\ref{sec:error}).
+
+\subsection{Baseline --- để biết điểm có \emph{ý nghĩa} không}
+
+Theo khuyến nghị của Measuring what Matters và BetterBench, demo luôn kèm hai
+baseline phi-LLM:
+
+\begin{itemize}
+  \item \textbf{random}: đoán ngẫu nhiên (MMLU $\approx 0.25$ do 4 lựa chọn).
+  \item \textbf{majority}: luôn chọn lớp/đáp án phổ biến nhất.
+\end{itemize}
+
+Một điểm tuyệt đối ``cao'' chỉ có ý nghĩa nếu nó \emph{vượt xa} baseline. Nếu một
+mô hình chỉ ngang random, điểm của nó là may rủi chứ không phải năng lực.
+
+\subsection{Các đại lượng tổng hợp}
+
+Từ các metric trên, \texttt{analysis.py} tính: accuracy theo từng benchmark; thứ
+hạng và hệ số tương quan hạng \emph{Spearman} $\rho$ giữa hai benchmark
+(rank-(in)stability); tỉ lệ coverage theo model$\times$benchmark; accuracy theo
+từng môn MMLU (phương sai construct); và độ tụt robustness gốc-vs-nhiễu. Mỗi đại
+lượng tương ứng một luận điểm của tutorial (Phần~\ref{sec:results}).

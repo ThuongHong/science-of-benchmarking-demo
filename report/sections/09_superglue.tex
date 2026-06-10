@@ -1,0 +1,97 @@
+% ===========================================================================
+% File: sections/09_superglue.tex
+% Phần 9: SuperGLUE — Khi benchmark cũ bị bão hòa
+% Thuộc tutorial: The Science of Benchmarking — What's Measured, What's Missing, What's Next
+% Thành viên 2: Chất lượng benchmark, benchmark truyền thống và các vấn đề còn thiếu
+% Nguồn chính: SuperGLUE (Wang et al., NeurIPS 2019)
+% ===========================================================================
+
+\section{SuperGLUE: Khi benchmark cũ bị bão hòa}
+\label{sec:superglue}
+
+SuperGLUE được đề xuất như một benchmark kế nhiệm GLUE nhằm giải quyết hiện tượng GLUE bị bão hòa~\cite{superglue}. Sau khi GLUE được công bố, các mô hình dựa trên pretraining và transfer learning tiến bộ rất nhanh. Trong vòng chưa đầy hai năm, điểm GLUE cao nhất (88.4 từ XLNet) đã vượt qua human performance ước lượng (87.1)~\cite{superglue}. Wang và cộng sự~\cite{superglue} nhận định: ``\textit{while there remains substantial scope for improvement towards GLUE's high-level goals, the original version of the benchmark is no longer a suitable metric for quantifying such progress}''.
+
+\begin{summarybox}{Vì sao cần SuperGLUE?}
+\begin{itemize}
+    \item GLUE tạo chuẩn đánh giá chung, nhưng nhanh chóng bị các mô hình mạnh đạt điểm vượt human baseline.
+    \item SuperGLUE giữ tinh thần đánh giá đa tác vụ, nhưng chọn task khó hơn và đa dạng hơn.
+    \item Benchmark mới bổ sung human baselines toàn diện để đo khoảng cách giữa mô hình và con người.
+\end{itemize}
+\end{summarybox}
+
+\subsection{Benchmark saturation và bài học từ GLUE}
+
+\textbf{Benchmark saturation} xảy ra khi một benchmark không còn tạo ra đủ khoảng trống để đo tiến bộ. Gắn với saturation là \textbf{ceiling effect}, tức hiện tượng điểm số bị nén gần trần tối đa. GLUE minh họa rõ ràng cho quá trình này: ELMo đạt 66.5, GPT đạt 72.8, BERT đạt 80.2, và các mô hình sau đó vượt qua human baseline 87.1~\cite{superglue}.
+
+\begin{itemize}
+    \item \textbf{Tín hiệu nhận biết}: nhiều mô hình đạt điểm gần tối đa hoặc vượt human baseline ước lượng. Trên GLUE, mô hình tốt nhất vượt human performance trên bốn trong chín task~\cite{superglue}.
+    \item \textbf{Hệ quả}: leaderboard vẫn có thứ hạng, nhưng chênh lệch điểm nhỏ có thể chủ yếu là nhiễu. Khi headroom còn rất ít, benchmark không còn đủ khả năng phân biệt tiến bộ thực tế.
+    \item \textbf{Giới hạn vẫn tồn tại}: mặc dù GLUE đã bão hòa ở mức tổng hợp, hiệu năng trên GLUE diagnostic set vẫn thấp ($R_3 = 0.42$, so với human baseline 0.80), với nhiều hiện tượng ngôn ngữ (restrictivity, disjunction, downward monotonicity) vẫn ở mức chance hoặc adversarial~\cite{superglue}. Điều này cho thấy ``\textit{even as unsupervised pretraining produces ever-better statistical summaries of text, it remains difficult to extract many details crucial to semantics without the right kind of supervision}''~\cite{superglue}.
+\end{itemize}
+
+BetterBench cũng nhấn mạnh quick saturation là một trong những thách thức mở lớn nhất của benchmarking AI: ``\textit{some benchmarks have been saturated within months of their release}''~\cite{betterbench}.
+
+\subsection{Quy trình thiết kế SuperGLUE}
+
+SuperGLUE được thiết kế theo một quy trình có hệ thống. Wang và cộng sự~\cite{superglue} xác định sáu tiêu chí chọn task:
+
+\begin{enumerate}
+    \item \textbf{Task substance}: task phải kiểm tra khả năng hiểu và suy luận về văn bản tiếng Anh.
+    \item \textbf{Task difficulty}: task phải vượt quá khả năng của mô hình SOTA hiện tại nhưng giải được bởi đa số người có trình độ đại học.
+    \item \textbf{Evaluability}: task phải có metric tự động tương ứng tốt với đánh giá của con người.
+    \item \textbf{Public data}: task phải có dữ liệu huấn luyện công khai đã tồn tại, để giảm rủi ro liên quan đến dataset mới tạo.
+    \item \textbf{Task format}: ưu tiên format đơn giản để tránh khuyến khích kiến trúc phức tạp task-specific. Tuy nhiên, mở rộng hơn GLUE bằng cách cho phép input dài hơn.
+    \item \textbf{License}: dữ liệu phải có license cho phép sử dụng và phân phối cho nghiên cứu.
+\end{enumerate}
+
+Nhóm phát triển phổ biến lời kêu gọi đề xuất task (\textit{call for task proposals}) tới cộng đồng NLP và nhận được khoảng 30 đề xuất. Các đề xuất được lọc theo tiêu chí trên; nhiều đề xuất bị loại do vấn đề license, format phức tạp hoặc không đủ headroom. Với các task còn lại, nhóm chạy baseline BERT và human baseline, rồi loại bỏ task quá khó cho người hoặc quá dễ cho máy~\cite{superglue}.
+
+\subsection{SuperGLUE thay đổi gì so với GLUE?}
+
+SuperGLUE giữ lại tinh thần của GLUE --- cung cấp một benchmark chung để đánh giá \textit{general-purpose language understanding} --- nhưng cải thiện ở năm khía cạnh~\cite{superglue}:
+
+\begin{itemize}
+    \item \textbf{Task khó hơn}: SuperGLUE giữ lại hai task khó nhất từ GLUE (RTE và một phiên bản cải tiến của WSC) và bổ sung sáu task mới được chọn dựa trên mức độ khó đối với BERT~\cite{superglue}.
+
+    \item \textbf{Định dạng đa dạng hơn}: trong khi GLUE chỉ giới hạn ở sentence và sentence-pair classification, SuperGLUE mở rộng sang coreference resolution (WSC), question answering (BoolQ, MultiRC, ReCoRD), causal reasoning (COPA) và word sense disambiguation (WiC)~\cite{superglue}.
+
+    \item \textbf{Human baselines toàn diện}: GLUE chỉ có ước lượng human performance cho một số task. SuperGLUE cung cấp human baselines cho tất cả benchmark tasks, thu thập qua Mechanical Turk với quy trình hai giai đoạn: huấn luyện trên development set rồi annotation trên test set~\cite{superglue}. Điều này giúp xác định rõ headroom còn lại.
+
+    \item \textbf{Hỗ trợ code tốt hơn}: SuperGLUE phát hành \texttt{jiant}, một toolkit module hóa dựa trên PyTorch và AllenNLP, hỗ trợ pretraining, multi-task learning và transfer learning~\cite{superglue}.
+
+    \item \textbf{Quy tắc sử dụng cải tiến}: giới hạn tần suất nộp (tối đa hai lần/ngày và sáu lần/tháng), yêu cầu trích dẫn rõ ràng các dataset được sử dụng, và không cho phép sử dụng test data chưa gắn nhãn trong quá trình phát triển hệ thống~\cite{superglue}.
+\end{itemize}
+
+\subsection{Các task tiêu biểu}
+
+SuperGLUE gồm tám task~\cite{superglue}:
+
+\begin{itemize}
+    \item \textbf{BoolQ}: question answering dạng yes/no, với câu hỏi từ người dùng Google Search và đoạn văn từ Wikipedia.
+    \item \textbf{CB}: CommitmentBank --- textual entailment ba lớp trên embedded clauses, đánh giá bằng accuracy và F1.
+    \item \textbf{COPA}: causal reasoning --- chọn nguyên nhân hoặc kết quả hợp lý nhất.
+    \item \textbf{MultiRC}: reading comprehension đa câu trả lời đúng, yêu cầu tổng hợp thông tin từ nhiều câu.
+    \item \textbf{ReCoRD}: reading comprehension với Cloze-style question trên tin tức, yêu cầu commonsense reasoning.
+    \item \textbf{RTE}: recognizing textual entailment --- giữ nguyên từ GLUE.
+    \item \textbf{WiC}: word sense disambiguation dạng phân loại nhị phân cặp câu.
+    \item \textbf{WSC}: coreference resolution dựa trên Winograd Schema Challenge, loại bỏ adversarial train/dev split của WNLI trong GLUE~\cite{superglue}.
+\end{itemize}
+
+\subsection{Công cụ phân tích}
+
+SuperGLUE giữ lại GLUE diagnostic set (chuyển sang hai lớp cho phù hợp với RTE) và bổ sung Winogender~\cite{superglue} --- một diagnostic dataset đánh giá gender bias trong coreference resolution. Winogender sử dụng \textit{minimal pairs}: mỗi cặp ví dụ chỉ khác nhau ở giới tính đại từ. Hiệu năng được đo bằng accuracy và \textit{gender parity score} (tỷ lệ minimal pairs có dự đoán giống nhau)~\cite{superglue}. Human baseline trên Winogender đạt accuracy 99.7\% và gender parity 0.99~\cite{superglue}.
+
+\subsection{Kết quả baseline}
+
+Kết quả baseline BERT trên SuperGLUE cho thấy headroom đáng kể~\cite{superglue}:
+
+\begin{itemize}
+    \item BERT++ (BERT với intermediate fine-tuning trên MultiNLI hoặc SWAG) đạt kết quả tốt nhất, nhưng vẫn cách human performance gần 20 điểm trung bình.
+    \item Khoảng cách lớn nhất là trên WSC (35 điểm dưới human performance), trong khi khoảng cách nhỏ nhất là trên BoolQ, CB, RTE và WiC (khoảng 10 điểm)~\cite{superglue}.
+    \item Trên Winogender, tất cả mô hình đạt gender parity gần hoàn hảo, nhưng accuracy chỉ ở mức random --- cho thấy parity score cao là vô nghĩa nếu không đi kèm accuracy cao~\cite{superglue}.
+    \item Trên diagnostic set, mô hình tiếp tục tụt xa so với con người~\cite{superglue}.
+\end{itemize}
+
+\begin{summarybox}{Bài học từ GLUE đến SuperGLUE}
+SuperGLUE cho thấy benchmark không phải thước đo vĩnh viễn. Một benchmark tốt ở thời điểm hiện tại có thể trở nên kém hữu ích trong tương lai nếu không được cập nhật hoặc thay thế. Quy trình thiết kế SuperGLUE --- với call for proposals, tiêu chí chọn task rõ ràng, human baselines toàn diện và cải tiến usage rules --- cung cấp mô hình tham khảo cho việc thiết kế benchmark ``thế hệ tiếp theo'' khi benchmark hiện tại bị bão hòa~\cite{superglue}.
+\end{summarybox}

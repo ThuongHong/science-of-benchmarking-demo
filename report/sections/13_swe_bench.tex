@@ -1,0 +1,69 @@
+\section{SWE-bench: Benchmark cho real-world software engineering}
+\label{sec:swe_bench}
+
+\textbf{SWE-bench}~\cite{swebench} là case study tiêu biểu cho benchmark
+thế hệ mới: thay vì hỏi mô hình \emph{về} lập trình, nó yêu cầu mô hình \emph{thực
+sự sửa} một lỗi phần mềm có thật và kiểm tra kết quả bằng cách chạy test.
+
+\subsection{Bài toán và cách dựng dữ liệu}
+
+Mỗi mẫu (task instance) trong SWE-bench được trích từ một \emph{pull request} có
+thật trên GitHub, thuộc các kho mã Python lớn và phổ biến (django, scikit-learn,
+matplotlib, sympy\ldots). Một mẫu gồm:
+
+\begin{itemize}
+  \item \textbf{Mô tả vấn đề}: nội dung issue gốc bằng ngôn ngữ tự nhiên.
+  \item \textbf{Trạng thái kho mã} tại commit ngay trước khi vá lỗi (codebase
+    thật, hàng nghìn file).
+  \item \textbf{Bộ test ẩn}: các unit test đi kèm PR --- gồm nhóm
+    \texttt{FAIL\_TO\_PASS} (đang đỏ, phải xanh sau khi vá) và nhóm
+    \texttt{PASS\_TO\_PASS} (đang xanh, không được làm hỏng).
+\end{itemize}
+
+Mô hình nhận mô tả vấn đề và kho mã, phải sinh ra một \emph{patch} (diff). Như vậy
+đầu vào lấy nguyên từ thực tế, không do người ra đề tạo --- giảm khả năng benchmark
+bị tối ưu hẹp và bám sát phân phối công việc kỹ sư phần mềm thật.
+
+\subsection{Chấm bằng thực thi, không so chuỗi}
+
+Điểm cốt lõi: SWE-bench \emph{không} so patch của mô hình với patch của con người
+theo từng ký tự. Patch của mô hình được \textbf{áp vào kho mã rồi chạy lại toàn bộ
+test}. Một mẫu được tính là \emph{resolved} chỉ khi: (i) mọi test
+\texttt{FAIL\_TO\_PASS} chuyển sang xanh, \emph{và} (ii) mọi test
+\texttt{PASS\_TO\_PASS} vẫn xanh. Tiêu chí pass/fail này khách quan và cho phép
+nhiều lời giải khác nhau về mặt cú pháp nhưng cùng \emph{đúng về hành vi} --- đúng
+điều mà so khớp chuỗi không làm được.
+
+Cơ chế ``đúng = chạy được'' này chính là tinh thần ta tái hiện ở quy mô nhỏ trong
+demo: ở GSM8K, ta không so chuỗi thô mà \emph{trích đáp án số rồi so giá trị}
+(Phần~\ref{sec:metrics}); và ta cho thấy chính \emph{lớp trích xuất/chấm} mới là
+chỗ benchmark dễ sai.
+
+\subsection{Vì sao SWE-bench ``khó'' và có ý nghĩa}
+
+Khi mới công bố, tỉ lệ giải được của các mô hình mạnh nhất rất thấp (cỡ vài phần
+trăm), trái ngược hẳn với điểm cao chót vót trên benchmark trắc nghiệm. Sự tương
+phản này minh hoạ hai luận điểm:
+
+\begin{itemize}
+  \item \textbf{Chống bão hoà}: vì đầu vào thực tế đa dạng và lời giải dài, đề
+    không bị ``đụng trần'' ngay như GLUE/MMLU --- còn nhiều dư địa phân biệt.
+  \item \textbf{Construct validity cao hơn}: pass/fail dựa trên test thật đo gần
+    đúng \emph{năng lực sửa lỗi} hơn là một proxy trắc nghiệm.
+\end{itemize}
+
+SWE-bench cũng có các biến thể thu hẹp/được kiểm định thủ công (ví dụ tập rút gọn
+và tập được con người xác minh) nhằm giảm nhiễu và chi phí --- bản thân việc này
+là một bài học BetterBench~\cite{betterbench}: một benchmark tốt cần được
+\emph{soi và tinh chỉnh} chứ không bất biến.
+
+\subsection{Hạn chế và liên hệ tới demo}
+
+SWE-bench không miễn nhiễm vấn đề: nguy cơ \emph{nhiễm dữ liệu} (mô hình từng thấy
+chính PR đó khi huấn luyện), chi phí dựng môi trường thực thi lớn, và rủi ro
+``đúng vì lý do sai'' (patch qua test nhưng nhờ test yếu). Đây đúng những loại rủi
+ro mà demo của nhóm thu nhỏ và phơi bày: nhiễm dữ liệu (Phần~\ref{sec:results}),
+độ giòn của lớp chấm (Phần~\ref{sec:metrics},~\ref{sec:error}), và sự khác biệt
+giữa \emph{metric} và \emph{construct}. Nói cách khác, demo là một ``SWE-bench thu
+nhỏ về mặt tư duy đo lường'': không dựng môi trường code, nhưng giữ nguyên câu hỏi
+trung tâm --- \emph{phép đo có thực sự đo đúng thứ ta nghĩ không?}

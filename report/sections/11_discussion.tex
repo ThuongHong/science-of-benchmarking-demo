@@ -1,0 +1,86 @@
+% ===========================================================================
+% File: sections/11_discussion.tex
+% Phần 11: Đánh giá và nhận xét
+% Thuộc tutorial: The Science of Benchmarking — What's Measured, What's Missing, What's Next
+% Thành viên 2: Chất lượng benchmark, benchmark truyền thống và các vấn đề còn thiếu
+% Nguồn chính: BetterBench, GLUE, SuperGLUE
+% ===========================================================================
+
+\section{Đánh giá và nhận xét}
+\label{sec:discussion}
+
+Ba case study --- BetterBench, GLUE và SuperGLUE --- cho thấy ba khía cạnh quan trọng và bổ sung lẫn nhau của khoa học benchmarking. GLUE cho thấy giá trị của benchmark suite trong việc chuẩn hóa đánh giá và thúc đẩy tiến bộ transfer learning. SuperGLUE cho thấy benchmark có vòng đời: một benchmark từng hữu ích có thể bị bão hòa khi mô hình phát triển. BetterBench cho thấy cần đánh giá chính benchmark bằng các tiêu chí rõ ràng, thay vì mặc định rằng benchmark phổ biến là benchmark đáng tin cậy.
+
+\begin{summarybox}{Ba bài học chính}
+\begin{itemize}
+    \item \textbf{GLUE}: benchmark suite giúp chuẩn hóa đánh giá và tạo điểm quy chiếu chung.
+    \item \textbf{SuperGLUE}: benchmark có vòng đời và có thể bị bão hòa khi mô hình tiến bộ.
+    \item \textbf{BetterBench}: cần đánh giá chất lượng của chính benchmark, không chỉ dùng benchmark để xếp hạng mô hình.
+\end{itemize}
+\end{summarybox}
+
+\subsection{So sánh ba case study}
+
+\begin{itemize}
+    \item \textbf{GLUE --- chuẩn hóa đánh giá.} GLUE không chỉ là một dataset, mà là một hệ thống đánh giá gồm chín task NLU đa dạng, private test set, evaluation server, leaderboard, metric tổng hợp và diagnostic set do chuyên gia xây dựng~\cite{glue}. GLUE cho phép bất kỳ kiến trúc nào tham gia (\textit{model-agnostic}), khuyến khích phát triển mô hình có khả năng chuyển giao tri thức giữa các tác vụ~\cite{glue}. Thành công của GLUE thể hiện rõ qua việc nó trở thành ``\textit{a prominent evaluation framework}'' cho cả GPT và BERT~\cite{superglue}. Tuy nhiên, GLUE cũng cho thấy giới hạn của benchmark tĩnh: các task chủ yếu là sentence/sentence-pair classification, macro-average có thể che khuất sự khác biệt (ví dụ: mọi baseline đạt 65.1 trên WNLI)~\cite{glue}, và benchmark bị bão hòa trong chưa đầy hai năm~\cite{superglue}.
+
+    \item \textbf{SuperGLUE --- phản ứng trước bão hòa.} SuperGLUE tăng độ khó bằng cách chọn task khó hơn, đa dạng định dạng task (QA, coreference, WSD) và nhấn mạnh khoảng cách giữa BERT baseline và human performance (trung bình gần 20 điểm)~\cite{superglue}. Quy trình thiết kế SuperGLUE --- call for proposals, tiêu chí chọn task rõ ràng, kiểm tra headroom qua BERT và human baseline --- cung cấp mô hình tham khảo cho benchmark ``thế hệ tiếp theo''~\cite{superglue}. Đáng chú ý, SuperGLUE cho thấy ngay cả khi GLUE bị bão hòa ở mức tổng hợp, các thách thức ngôn ngữ sâu (restrictivity, disjunction, downward monotonicity trên diagnostic set) vẫn chưa được giải quyết~\cite{superglue}.
+
+    \item \textbf{BetterBench --- đánh giá công cụ đánh giá.} BetterBench mở rộng thảo luận từ ``đánh giá mô hình'' sang ``đánh giá công cụ đánh giá''. Đánh giá 24 benchmark theo 46 tiêu chí, BetterBench phát hiện: implementation là giai đoạn yếu nhất (6.2/15), 17/24 benchmark thiếu script tái lập, 14/24 thiếu báo cáo uncertainty, và có tương quan có ý nghĩa thống kê giữa chất lượng thiết kế và tính khả dụng ($\rho = 0.693$, $p < 0.001$)~\cite{betterbench}. BetterBench cũng chỉ ra rằng các mô hình thường báo cáo trên benchmark chất lượng thấp (MMLU: 5.5) và benchmark chất lượng cao (GPQA: 11.0) mà không phân biệt~\cite{betterbench}.
+\end{itemize}
+
+\subsection{Nhận xét chung}
+
+Một nhận xét quan trọng là benchmark không nên được xem như thước đo tuyệt đối. Điểm số benchmark chỉ có ý nghĩa trong phạm vi task, dữ liệu, metric và giao thức đánh giá cụ thể. Dưới đây là các bài học rút ra từ ba case study:
+
+\begin{itemize}
+    \item \textbf{Nhìn vào chi tiết, không chỉ điểm trung bình.} GLUE cho thấy macro-average có thể che khuất thông tin: mô hình đạt điểm trung bình cao có thể vẫn yếu ở task đòi hỏi suy luận sâu~\cite{glue}. SuperGLUE cho thấy khoảng cách trên từng task rất khác nhau (WSC: 35 điểm dưới human, BoolQ: 10 điểm)~\cite{superglue}.
+
+    \item \textbf{Kiểm tra tính ổn định.} BetterBench nhấn mạnh cần báo cáo intra-model variance và inter-model variance~\cite{betterbench}. Nếu chênh lệch điểm giữa hai mô hình nằm trong phạm vi variance khi chạy lại, kết luận về ``mô hình nào tốt hơn'' có thể không đáng tin.
+
+    \item \textbf{Đánh giá dữ liệu có đại diện không.} GLUE chọn dataset từ nhiều domain để tăng diversity~\cite{glue}; SuperGLUE mở rộng sang nhiều task format~\cite{superglue}. Tuy nhiên, cả hai chỉ đánh giá tiếng Anh, không bao gồm multi-modal input, và task vẫn chủ yếu là offline (không interactive).
+
+    \item \textbf{Xem benchmark có phù hợp với mục đích sử dụng không.} BetterBench chỉ ra benchmark ``\textit{cannot provide an absolute signal and instead give a relative one}''~\cite{betterbench}. Một benchmark được thiết kế để so sánh mô hình NLU (như GLUE) không nhất thiết phù hợp cho đánh giá safety hoặc triển khai trong lĩnh vực cụ thể.
+
+    \item \textbf{Cẩn thận với benchmark trong bối cảnh quy định.} BetterBench cảnh báo rằng khi ``\textit{governments increasingly rely on evaluations for AI regulations}'', việc sử dụng benchmark chất lượng thấp trong framework đánh giá (ví dụ: UK AI Safety Institute's \textit{Inspect} bao gồm cả MMLU và GPQA) ``\textit{potentially resulting in misleading evaluations}''~\cite{betterbench}.
+\end{itemize}
+
+\subsection{Các thách thức mở}
+
+BetterBench xác định năm thách thức mở mà benchmark developer không thể tự giải quyết hoàn toàn~\cite{betterbench}:
+
+\begin{enumerate}
+    \item \textbf{Quick saturation}: nhiều benchmark bị bão hòa trong vài tháng sau phát hành~\cite{betterbench}. GLUE là ví dụ kinh điển, bị vượt human baseline trong chưa đầy hai năm~\cite{superglue}.
+
+    \item \textbf{Contamination}: ngay cả khi benchmark áp dụng canary strings và encryption, nhà phát triển mô hình có thể không tuân thủ. ``\textit{Preventing data contamination is a shared responsibility between benchmark and model developers}''~\cite{betterbench}.
+
+    \item \textbf{Poor construct validity}: một số thuộc tính ``\textit{arise from the interaction between the model and its user population, rather than from the model alone}''~\cite{betterbench}. Benchmark tĩnh khó nắm bắt các thuộc tính tương tác này.
+
+    \item \textbf{Standardization of benchmark reporting}: thiếu chuẩn hóa khiến nhà phát triển mô hình ``\textit{report whichever benchmarks they see fit without being obligated to provide a rationale}''~\cite{betterbench}.
+
+    \item \textbf{Gameability}: benchmark lý tưởng phải chống được việc tăng điểm mà không cải thiện năng lực thật~\cite{betterbench}, nhưng nhiều benchmark hiện tại đã bị chứng minh là có thể bị thao túng~\cite{betterbench}.
+\end{enumerate}
+
+\subsection{Định hướng cho benchmark tương lai}
+
+Dựa trên các bài học từ ba case study, benchmark tương lai nên phát triển theo hướng đa chiều hơn, minh bạch hơn và gần thực tế hơn. Thay vì chỉ báo cáo một điểm số, benchmark nên cung cấp nhiều lớp thông tin:
+
+\begin{enumerate}
+    \item \textbf{Phân tích theo nhóm năng lực}: tách điểm theo reasoning, robustness, factuality, safety hoặc các năng lực liên quan. GLUE diagnostic set phân tích theo bốn nhóm hiện tượng ngôn ngữ~\cite{glue}; SuperGLUE bổ sung phân tích gender bias~\cite{superglue}. Cách tiếp cận này cần được áp dụng rộng hơn.
+
+    \item \textbf{Báo cáo uncertainty}: công bố confidence interval, variance giữa các lần chạy và kiểm định statistical significance. BetterBench cho thấy đây là một trong những tiêu chí yếu nhất: điểm trung bình cho ``báo cáo statistical significance'' chỉ đạt 5.62/15~\cite{betterbench}.
+
+    \item \textbf{Kiểm tra robustness}: đánh giá trên dữ liệu nhiễu, phân phối mới hoặc các lát cắt khó. GLUE diagnostic set và SuperGLUE Winogender là ví dụ tích cực~\cite{glue,superglue}.
+
+    \item \textbf{Công khai protocol}: mô tả rõ dữ liệu, metric, quy trình nộp kết quả và giới hạn sử dụng. SuperGLUE cải tiến so với GLUE bằng cách giới hạn tần suất nộp và yêu cầu trích dẫn dataset~\cite{superglue}. BetterBench cung cấp checklist có thể áp dụng cho bất kỳ benchmark nào~\cite{betterbench}.
+
+    \item \textbf{Cơ chế cập nhật}: theo dõi contamination, saturation và phản hồi từ cộng đồng. BetterBench gợi ý versioning (task versioning cho thay đổi nhỏ, benchmark version cho thay đổi lớn) và cân nhắc giữa dynamic vs.\ static benchmarks~\cite{betterbench}.
+
+    \item \textbf{Kết hợp định lượng và định tính}: nhiều lỗi quan trọng của mô hình không thể hiện rõ qua một metric duy nhất. GLUE diagnostic set cho phép ``\textit{error analysis, qualitative model comparison}''~\cite{glue}, và SuperGLUE Winogender phát hiện bias không hiển thị qua accuracy đơn thuần~\cite{superglue}.
+
+    \item \textbf{Nâng cao tiêu chuẩn phát triển benchmark}: BetterBench đề xuất benchmark developers sử dụng checklist best practices, áp dụng build status trên GitHub, và đảm bảo tiêu chí tối thiểu trước khi công bố~\cite{betterbench}. ``\textit{Small changes can lead to significant improvements in overall benchmark practices}'' --- ví dụ, thêm code documentation và thông tin liên hệ là thay đổi nhỏ nhưng ``\textit{can significantly enhance usability, accountability, and ease of use}''~\cite{betterbench}.
+\end{enumerate}
+
+\begin{summarybox}{Kết luận cuối}
+GLUE, SuperGLUE và BetterBench cùng minh họa một luận điểm trung tâm: benchmark là công cụ cần thiết nhưng không trung lập và không hoàn hảo. Benchmark tốt giúp đo lường tiến bộ, phát hiện điểm yếu và định hướng nghiên cứu~\cite{glue,superglue}. Benchmark kém có thể tạo ra ảo giác về năng lực, khuyến khích tối ưu sai mục tiêu và dẫn đến diễn giải quá mức~\cite{betterbench}. Vì vậy, khoa học benchmarking không chỉ quan tâm đến việc tạo ra nhiều benchmark hơn, mà còn phải đặt câu hỏi sâu hơn: benchmark đo cái gì, bỏ sót điều gì, và khi nào cần thay đổi cách đánh giá.
+\end{summarybox}

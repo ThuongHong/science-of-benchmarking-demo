@@ -1,0 +1,84 @@
+% ===========================================================================
+% File: sections/08_glue.tex
+% Phần 8: GLUE — Benchmark suite truyền thống cho NLU
+% Thuộc tutorial: The Science of Benchmarking — What's Measured, What's Missing, What's Next
+% Thành viên 2: Chất lượng benchmark, benchmark truyền thống và các vấn đề còn thiếu
+% Nguồn chính: GLUE (Wang et al., ICLR 2019)
+% ===========================================================================
+
+\section{GLUE: Benchmark suite truyền thống cho NLU}
+\label{sec:glue}
+
+GLUE, viết tắt của \textit{General Language Understanding Evaluation}, là một benchmark suite được xây dựng để đánh giá năng lực hiểu ngôn ngữ tự nhiên (NLU) của mô hình trên nhiều tác vụ khác nhau~\cite{glue}. Trước GLUE, nhiều mô hình NLP thường được đánh giá trên từng task riêng lẻ, khiến việc so sánh khả năng tổng quát của mô hình trở nên khó khăn. GLUE giải quyết vấn đề này bằng cách gom nhiều task NLU vào một bộ đánh giá chung, kèm theo evaluation server, leaderboard, metric tổng hợp và diagnostic set.
+
+\begin{summarybox}{GLUE trong một khung nhìn}
+\begin{itemize}
+    \item \textbf{Mục tiêu}: chuẩn hóa đánh giá năng lực hiểu ngôn ngữ tự nhiên trên nhiều tác vụ.
+    \item \textbf{Cấu trúc}: chín task, private test set, evaluation server, leaderboard và diagnostic set.
+    \item \textbf{Đóng góp}: tạo điểm quy chiếu chung cho giai đoạn đầu của các mô hình tiền huấn luyện.
+    \item \textbf{Giới hạn}: task tương đối tĩnh, điểm tổng hợp một con số và nguy cơ bão hòa.
+\end{itemize}
+\end{summarybox}
+
+\subsection{Mục tiêu và nguyên tắc thiết kế}
+
+Mục tiêu của GLUE là khuyến khích các mô hình học được tri thức ngôn ngữ có thể chuyển giao giữa các tác vụ, thay vì chỉ tối ưu cho một dataset duy nhất. Wang và cộng sự~\cite{glue} nêu rõ: ``\textit{if we aspire to develop models with understanding beyond the detection of superficial correspondences between inputs and outputs, then it is critical to develop a more unified model that can learn to execute a range of different linguistic tasks in different domains}''. GLUE không áp đặt kiến trúc mô hình cụ thể --- bất kỳ hệ thống nào có thể xử lý input dạng một câu hoặc cặp câu và đưa ra dự đoán tương ứng đều có thể được đánh giá~\cite{glue}.
+
+Một nguyên tắc thiết kế quan trọng của GLUE là bao gồm cả task có ít dữ liệu huấn luyện. Wang và cộng sự~\cite{glue} giải thích rằng benchmark được thiết kế sao cho ``\textit{good performance should require a model to share substantial knowledge across all tasks}''. Điều này có nghĩa nếu một hệ thống huấn luyện riêng biệt cho mỗi task mà không dùng pretraining hay transfer learning, nó sẽ khó đạt kết quả cạnh tranh trên các task ít dữ liệu~\cite{glue}.
+
+GLUE cũng khác biệt rõ ràng so với SentEval~\cite{conneau2018senteval}, một benchmark đánh giá sentence encoder trước đó. SentEval chỉ đánh giá mô hình sentence-to-vector, trong khi GLUE cho phép bất kỳ kiến trúc nào, bao gồm cả mô hình sử dụng cơ chế attention giữa hai câu~\cite{glue}. Ngoài ra, nhiều task trong SentEval đã gần bão hòa hoặc quá tập trung vào sentiment analysis; GLUE được thiết kế để ``\textit{both diverse and difficult}''~\cite{glue}.
+
+\subsection{Các nhóm tác vụ trong GLUE}
+
+GLUE gồm chín tác vụ, có thể chia thành ba nhóm chính~\cite{glue}:
+
+\begin{itemize}
+    \item \textbf{Single-sentence tasks}: CoLA và SST-2. CoLA đánh giá khả năng nhận biết tính chấp nhận được về mặt ngữ pháp của câu, sử dụng Matthews correlation coefficient (MCC) vì dữ liệu mất cân bằng. SST-2 đánh giá sentiment (positive/negative) của câu trong ngữ cảnh review phim~\cite{glue}.
+
+    \item \textbf{Similarity and paraphrase tasks}: MRPC, STS-B và QQP. MRPC là corpus cặp câu từ tin tức, đánh giá paraphrase detection. STS-B là regression task đánh giá mức độ tương đồng ngữ nghĩa (thang 1-5). QQP đánh giá liệu hai câu hỏi từ Quora có tương đương ngữ nghĩa hay không. Với MRPC và QQP, do dữ liệu mất cân bằng, GLUE báo cáo cả accuracy và F1~\cite{glue}.
+
+    \item \textbf{Inference tasks}: MNLI, QNLI, RTE và WNLI. MNLI là tác vụ NLI lớn nhất (393k mẫu huấn luyện) với dữ liệu từ mười domain khác nhau, đánh giá cả matched và mismatched test sets. QNLI được chuyển đổi từ SQuAD sang dạng sentence pair classification. RTE kết hợp dữ liệu từ nhiều challenge textual entailment. WNLI (Winograd NLI) yêu cầu commonsense reasoning~\cite{glue}.
+\end{itemize}
+
+Một đặc điểm đáng chú ý là GLUE không tạo dataset mới từ đầu: ``\textit{we rely on preexisting datasets because they have been implicitly agreed upon by the NLP community as challenging and interesting}''~\cite{glue}. Bốn task sử dụng private test data để đảm bảo benchmark được dùng công bằng~\cite{glue}.
+
+\subsection{Diagnostic dataset}
+
+Một đóng góp quan trọng của GLUE là diagnostic dataset do chuyên gia xây dựng, gồm 1100 ví dụ NLI được gắn nhãn với các hiện tượng ngôn ngữ cụ thể~\cite{glue}. Các hiện tượng được tổ chức thành bốn nhóm lớn:
+
+\begin{itemize}
+    \item \textbf{Lexical Semantics}: lexical entailment, morphological negation, factivity, symmetry/collectivity, named entities, quantifiers.
+    \item \textbf{Predicate-Argument Structure}: core arguments, anaphora/coreference, active/passive, relative clauses, coordination scope.
+    \item \textbf{Logic}: negation, double negation, conjunction, disjunction, conditionals, monotonicity.
+    \item \textbf{Knowledge}: common sense và world knowledge.
+\end{itemize}
+
+Diagnostic set không nhằm mục đích là benchmark riêng, mà là ``\textit{an analysis tool for error analysis, qualitative model comparison, and development of adversarial examples}''~\cite{glue}. Wang và cộng sự kiểm tra rằng diagnostic set không chứa artifact: hai classifier fastText chỉ dùng hypothesis đạt accuracy gần chance (32.7\% và 36.4\%), cho thấy dữ liệu không bị khai thác bởi shortcut~\cite{glue}. Human baseline trên diagnostic set đạt $R_3 = 0.80$, cao hơn nhiều so với tất cả baseline hệ thống~\cite{glue}.
+
+\subsection{Kết quả baseline và bài học}
+
+GLUE đánh giá nhiều loại baseline~\cite{glue}:
+
+\begin{itemize}
+    \item \textbf{Single-task vs.\ multi-task}: huấn luyện đa tác vụ với tham số chia sẻ thường cho kết quả tốt hơn huấn luyện riêng biệt, đặc biệt khi kết hợp với attention.
+    \item \textbf{Pre-training}: ELMo cải thiện hiệu năng trên hầu hết các task so với BiLSTM không pre-training. Mô hình tốt nhất (multi-task BiLSTM + Attention + ELMo) đạt GLUE score trung bình 70.0~\cite{glue}.
+    \item \textbf{Sentence representation models}: GenSen đạt kết quả tốt nhất trong nhóm sentence encoder (66.2), nhưng vẫn thấp hơn mô hình multi-task có attention~\cite{glue}.
+\end{itemize}
+
+Kết quả baseline cho thấy ``\textit{the low absolute performance of our best model indicates the need for improved general NLU systems}''~\cite{glue}. Phân tích trên diagnostic set chỉ ra rằng baseline ``\textit{deal well with strong lexical signals but struggle with deeper logical structure}''~\cite{glue}.
+
+\subsection{Điểm mạnh và giới hạn}
+
+\begin{itemize}
+    \item \textbf{Điểm mạnh}: GLUE kết hợp tập task đa dạng, private test set, evaluation server, leaderboard công khai, metric tổng hợp và diagnostic set do chuyên gia xây dựng. Cấu trúc model-agnostic cho phép đánh giá bất kỳ phương pháp nào. Private test set giúp hạn chế việc mô hình tối ưu trực tiếp trên test set~\cite{glue}.
+
+    \item \textbf{Giới hạn 1 --- phạm vi task}: các task của GLUE chủ yếu dựa trên phân loại câu hoặc cặp câu. Điều này giúp benchmark dễ triển khai và chuẩn hóa, nhưng chưa bao phủ đầy đủ reasoning nhiều bước, long-context understanding, interactive QA hoặc generation~\cite{glue}.
+
+    \item \textbf{Giới hạn 2 --- điểm tổng hợp}: macro-average tiện cho leaderboard, nhưng có thể che khuất sự khác biệt giữa các task. Một mô hình có thể đạt điểm trung bình cao nhờ làm tốt các task dễ (ví dụ SST-2) nhưng vẫn yếu ở các task đòi hỏi suy luận sâu (ví dụ WNLI, với mọi baseline đạt đúng 65.1 --- majority class)~\cite{glue}.
+
+    \item \textbf{Giới hạn 3 --- bão hòa}: khi các mô hình tiền huấn luyện như ELMo, GPT và BERT tiến bộ nhanh, GLUE dần mất khả năng phân biệt rõ các mô hình mạnh. Đây là lý do SuperGLUE được đề xuất như một benchmark kế nhiệm~\cite{superglue}.
+\end{itemize}
+
+\begin{summarybox}{Kết luận ngắn}
+GLUE có giá trị lớn vì chuẩn hóa cách đánh giá NLU trong một giai đoạn quan trọng của NLP. GLUE chứng minh rằng một benchmark suite được thiết kế cẩn thận --- với task đa dạng, private test data, diagnostic analysis và model-agnostic API --- có thể thúc đẩy nghiên cứu transfer learning một cách hiệu quả~\cite{glue}. Tuy nhiên, chính thành công của GLUE cũng cho thấy benchmark có vòng đời: khi mô hình mạnh lên, benchmark tĩnh có thể nhanh chóng trở nên quá dễ hoặc quá hẹp.
+\end{summarybox}
