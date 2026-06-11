@@ -1,168 +1,245 @@
-# Science of Benchmarking
+# Mini Benchmark Evaluator
 
-Một **nghiên cứu + công cụ** về *tính hợp lệ của phép đo* trong benchmark mô hình
-ngôn ngữ: thay vì hỏi "model nào điểm cao nhất", dự án hỏi **"chính phép đo này có
-đáng tin không"**.
+Một demo thực nghiệm về **science of benchmarking**: thay vì chỉ hỏi model nào
+đạt điểm cao nhất, pipeline kiểm tra xem kết luận đó thay đổi thế nào khi đổi
+benchmark, cách chấm điểm hoặc format câu hỏi.
 
-Repo gồm hai phần độc lập nhưng bổ trợ:
+Demo chạy sáu language model và hai baseline trên:
 
-- **`report/`** — bản báo cáo đầy đủ (LaTeX) tổng hợp lý thuyết: construct validity,
-  chất lượng benchmark, lịch sử GLUE → SuperGLUE, SWE-bench, và đâu là chỗ benchmark
-  hay sai.
-- **`src/` + `notebook/`** — **Mini Benchmark Evaluator**: pipeline chạy thật, lấy
-  hai benchmark công khai (MMLU, GSM8K) rồi áp một bộ phân tích phê phán lên chúng để
-  *phơi bày* các vấn đề đo lường bằng số liệu thật.
+- **MMLU**: kiến thức tổng quát, trắc nghiệm bốn lựa chọn.
+- **GSM8K**: bài toán có lời văn và chuỗi suy luận.
 
-## Mini Benchmark Evaluator — công cụ làm gì
+Mục tiêu là minh họa các vấn đề đo lường, **không phải tạo leaderboard model**.
 
-Cho một tập model + một tập benchmark, công cụ sinh ra số liệu trả lời sáu câu hỏi
-về *chất lượng phép đo* (không phải về xếp hạng model):
+## Chạy Trên Kaggle
 
-| Phân tích | Câu hỏi nó trả lời | Output |
-|---|---|---|
-| **Saturation** | Benchmark còn phân biệt được model mạnh không, hay đã đụng trần? | `accuracy.csv`, `saturation.png` |
-| **Baseline** | Điểm có *ý nghĩa* hơn đoán mò không? | `accuracy.csv` (random / majority) |
-| **Rank-instability** | Đổi benchmark có đổi luôn người thắng không? | `ranking.csv`, `model_agreement.png` |
-| **Metric ≠ construct** | Đổi *cách chấm* (không đổi đầu ra model) có sập điểm không? | `metric_gap.csv`, `metric_gap_examples.csv` |
-| **Construct variance** | Một con số "accuracy" có che giấu chênh lệch giữa các môn? | `mmlu_by_subject.csv` |
-| **Robustness** | Điểm gốc dựa vào *kiến thức* hay dựa vào *format câu hỏi*? | `robustness.csv`, `robustness.png` |
+### Yêu cầu
 
-Mọi phân tích đều minh bạch hạng cân (`params_b`) để không nhầm chênh lệch *kích
-thước* với chênh lệch *họ model*.
+- Kaggle account với Internet bật.
+- GPU T4.
+- Hugging Face read token lưu trong Kaggle Secret với tên `HF_TOKEN`.
+- Đã chấp nhận license của
+  [Gemma 4 E4B](https://huggingface.co/google/gemma-4-E4B-it).
 
-## Cấu hình mặc định
+### Chạy demo
 
-| Thành phần | Lựa chọn |
-|---|---|
-| Benchmark | **MMLU** (kiến thức, trắc nghiệm 4 đáp án, 150 câu) + **GSM8K** (toán reasoning, 80 câu) |
-| Model | Gemma-4 E2B/E4B (ladder cùng họ) · Qwen3.5-4B / Phi-3.5-mini / Qwen2.5-3B (panel ~4B khác họ) · Qwen2.5-Math-7B (math-specialist, đầu dò lệch chuyên môn) |
-| Baseline | random · majority-class (non-LLM) |
-| Backend | Hugging Face `transformers`, 4-bit, **greedy → tất định** |
+1. Upload hoặc import [`notebook/2_run_all.ipynb`](notebook/2_run_all.ipynb)
+   vào Kaggle.
+2. Chọn **Settings → Accelerator → GPU T4**, bật Internet và thêm secret
+   `HF_TOKEN`.
+3. Chọn **Run All**.
 
-Đổi model/benchmark = sửa `src/config.py`. Pipeline không gắn cứng vào danh sách này.
+Notebook sẽ:
 
-## Cấu trúc repo
-
-```
-.
-├── README.md
-├── requirements.txt
-├── report/                     # báo cáo LaTeX đầy đủ
-│   ├── main.tex                #   biên dịch bằng XeLaTeX/LuaLaTeX
-│   ├── preamble.tex
-│   ├── sections/               #   01_introduction … 20_reproducibility
-│   └── ref/ref.bib
-├── notebook/
-│   ├── 1_smoke_test.ipynb      # test nhanh 1 model
-│   └── 2_run_all.ipynb         # chạy đủ panel → số + hình
-├── src/
-│   ├── config.py               # subset + danh sách system (điểm chỉnh chính)
-│   ├── data.py                 # tải MMLU + GSM8K (subset cố định seed)
-│   ├── metrics.py              # MMLU letter-match; GSM8K first-number vs last-number
-│   ├── perturb.py              # sinh bản nhiễu giữ nhãn (option_shuffle / distractor)
-│   ├── models.py               # HFRunner + baseline + cache + FakeRunner
-│   ├── evaluate.py             # vòng chạy → results/per_item.csv
-│   └── analysis.py             # bảng + hình + ví dụ định tính
-├── data/                       # subset benchmark đã cache (sinh khi chạy)
-└── results/
-    ├── per_item.csv            # từng câu: đúng/sai, đáp án trích
-    ├── accuracy.csv            # MMLU vs GSM8K theo system (+ baseline)
-    ├── ranking.csv             # thứ hạng MMLU vs GSM8K (+ params_b)
-    ├── coverage.csv            # tỉ lệ trích được đáp án / model
-    ├── mmlu_by_subject.csv     # accuracy theo môn
-    ├── metric_gap.csv          # GSM8K naive vs robust grader
-    ├── robustness.csv          # MMLU gốc vs nhiễu
-    ├── predictions/*.json      # cache generation (commit để tái lập)
-    └── figures/*.png
+```text
+load deterministic benchmark subsets
+        ↓
+evaluate models and baselines
+        ↓
+write per-item predictions
+        ↓
+build analysis tables and figures
 ```
 
-## Chạy demo
+Kết quả nằm trong thư mục `results/` của notebook output. Prediction cache đã
+được commit nên lần chạy lại không cần sinh lại các prompt đã có; model vẫn cần
+được tải và load lần lượt lên GPU.
 
-### A. Kaggle — đủ panel (khuyến nghị)
+Để kiểm tra một model mới trước khi chạy toàn bộ panel, dùng
+[`notebook/1_smoke_test.ipynb`](notebook/1_smoke_test.ipynb).
 
-1. Mở `notebook/2_run_all.ipynb`. **Settings → Accelerator → `GPU T4`**, **Internet → On**.
-2. **Add-ons → Secrets →** thêm `HF_TOKEN` (HF read token). Accept licence Gemma tại
-   <https://huggingface.co/google/gemma-4-E4B-it> (model khác ungated).
-3. **Run all.** Greedy → bấm lại ra **đúng số**.
+## Kết Quả Demo
 
-Cache generation (`results/predictions/*.json`) đã commit: model đã chấm sẽ
-**cache-hit tức thì**, thêm model vào `config.SYSTEMS` rồi Run all → chỉ model mới
-gọi GPU thật. (Lần đầu cả panel ~1.5–2h; có cache thì chỉ tốn cho model mới.)
+Thiết lập mặc định dùng `seed=0`, gồm **150 câu MMLU**, **80 câu GSM8K** và
+**50 câu MMLU bị perturb**. Model chạy bằng 4-bit quantization và greedy decoding.
 
-### B. Máy có GPU NVIDIA ≥ 8GB
-
-```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-huggingface-cli login          # cần đã accept licence Gemma
-python src/evaluate.py         # → results/per_item.csv
-python src/analysis.py         # → results/*.csv + figures/*.png
-```
-
-### C. Không GPU — chỉ kiểm tra pipeline (không phải kết quả thật)
-
-```bash
-pip install pandas matplotlib numpy
-MINIBENCH_SYNTHETIC=1 python src/evaluate.py --fake   # model giả + data giả
-MINIBENCH_SYNTHETIC=1 python src/analysis.py
-```
-
-`FakeRunner` + dữ liệu tổng hợp chứng minh toàn bộ luồng chạy được trên máy không
-GPU; **số sinh ra không dùng để báo cáo.**
-
-## Biên dịch báo cáo
-
-```bash
-cd report
-latexmk -xelatex -outdir=output main.tex   # output/main.pdf
-```
-
-Cần XeLaTeX hoặc LuaLaTeX (hỗ trợ tiếng Việt). Trên Overleaf: Menu → Compiler → XeLaTeX.
-
-## Kết quả thật (panel mặc định)
-
-> _Kaggle T4 free, 4-bit greedy, subset seed=0 (150 MMLU + 80 GSM8K). Bấm lại ra đúng số._
-
-| system | params_b | acc_mmlu | acc_gsm8k | hạng MMLU → GSM8K |
-|---|---|---|---|---|
-| qwen3.5-4b | 4.0 | **0.687** | 0.913 | 1 → 2 |
-| phi-3.5-mini | 3.8 | 0.587 | 0.850 | 2 → 3 |
-| gemma-4-e4b | 4.5 | 0.533 | 0.788 | 3 → 4 |
-| qwen2.5-3b | 3.1 | 0.513 | 0.775 | 4 → 5 |
-| gemma-4-e2b | 2.3 | 0.427 | 0.725 | 5 → 6 |
-| qwen2.5-math-7b | 7.0 | 0.353 | **0.963** | **6 → 1** |
+| System | Params | MMLU | GSM8K | Hạng MMLU → GSM8K |
+|---|---:|---:|---:|---:|
+| qwen3.5-4b | 4.0B | **0.687** | 0.913 | 1 → 2 |
+| phi-3.5-mini | 3.8B | 0.587 | 0.850 | 2 → 3 |
+| gemma-4-e4b | 4.5B | 0.533 | 0.788 | 3 → 4 |
+| qwen2.5-3b | 3.1B | 0.513 | 0.775 | 4 → 5 |
+| gemma-4-e2b | 2.3B | 0.427 | 0.725 | 5 → 6 |
+| qwen2.5-math-7b | 7.0B | 0.353 | **0.963** | **6 → 1** |
 | baseline-majority | — | 0.253 | 0.000 | — |
 | baseline-random | — | 0.233 | 0.050 | — |
 
-Vài quan sát rút ra từ bảng trên:
+### Demo cho thấy gì?
 
-- **Saturation:** GSM8K nằm gọn ở **0.73–0.96** (ít phân biệt ở đỉnh) còn MMLU trải
-  **0.35–0.69** (còn phân biệt) — đúng tương phản từng đẩy GLUE nhường SuperGLUE.
-  Với n=80, "bão hoà" là quan sát định tính, không phải kết luận thống kê.
-- **Rank-instability:** panel 5 model đa năng xếp hạng nhất quán (ρ=1.0), nhưng thêm
-  **một** math-specialist lệch chủ đích là đủ kéo Spearman xuống **ρ=0.14** (ρ=0.0
-  cho riêng nhóm ≥3B): nó **bét MMLU (0.353)** mà **đỉnh GSM8K (0.963)**,
-  `rank_shift=5`. Một construct đủ lệch là đủ biến "ai thắng" thành hàm của benchmark.
-- **Metric ≠ construct:** cùng đầu ra model, đổi bộ chấm GSM8K từ *lấy số cuối* sang
-  *lấy số đầu* làm accuracy rơi từ 0.73–0.96 xuống ≈0 (`n_robust_only` = 58–77 / 80).
-- **Robustness:** nhiễu giữ nhãn làm mọi model tụt 0.06–0.18; tụt nhiều nhất ở model
-  *yếu MMLU nhất* → điểm gốc một phần dựa vào format hơn kiến thức.
+**1. “Model tốt nhất” phụ thuộc benchmark**
 
-## Tái lập
+`qwen3.5-4b` đứng đầu MMLU nhưng `qwen2.5-math-7b` đứng đầu GSM8K. Math
+specialist dịch từ hạng 6 lên hạng 1 khi chuyển từ benchmark kiến thức tổng quát
+sang benchmark toán. Spearman correlation của toàn panel chỉ còn **ρ = 0.14**.
 
-- Subset lấy bằng **seed cố định** (`config.SEED`) → cùng item, cùng thứ tự.
-- Generation **greedy** (`do_sample=False`) → không phụ thuộc ngẫu nhiên.
-- Mỗi lời gọi model cache theo `sha256(model_id, prompt)` → chạy nối tiếp tức thì,
-  số liệu ổn định, không cần GPU lại nếu đã có cache.
+Artifact: `results/ranking.csv`, `results/figures/model_agreement.png`.
 
-## Hạn chế
+**2. Một cách chấm điểm dễ vỡ có thể chấm sai câu trả lời đúng**
 
-- **Cỡ mẫu nhỏ** (150 MMLU + 80 GSM8K) → khoảng tin cậy rộng. Mục tiêu là *minh hoạ
-  vấn đề đo lường*, không xếp hạng tuyệt đối.
-- **Math-specialist là đầu dò chủ đích lệch**, không thuộc panel ~4B. Đưa vào để
-  *kiểm tra* rank-instability, không giả định nó. Panel đa năng tự nó ổn định (ρ=1.0).
-- **Contamination:** MMLU (2021) và GSM8K (2021) gần như chắc nằm trong dữ liệu huấn
-  luyện các model này; điểm tuyệt đối phản ánh *trí nhớ* nhiều hơn *suy luận*. Demo
-  dùng chúng để phơi bày chính vấn đề này, không để đánh giá năng lực thật.
-- **Hẹp về construct:** chỉ phủ kiến thức + toán; thiếu reasoning tổng quát, trung
-  thực, an toàn, code… → kết luận chỉ trong phạm vi hai construct này.
+GSM8K thường tạo output chứa nhiều con số trung gian. Khi grader lấy **số đầu
+tiên** thay vì **số cuối cùng**, accuracy của cùng một tập output giảm gần về
+0. Tùy model, **58–77 trên 80** câu chỉ được tính đúng bởi grader lấy số cuối.
+
+Artifact: `results/metric_gap.csv`, `results/metric_gap_examples.csv`,
+`results/figures/metric_gap.png`.
+
+**3. Điểm số nhạy với thay đổi format**
+
+Demo tạo các bản MMLU giữ nguyên đáp án đúng nhưng đảo thứ tự lựa chọn hoặc thêm
+distractor. Accuracy giảm khoảng **0.06–0.18** tùy model. Điều này cho thấy một
+phần điểm số phụ thuộc cách trình bày câu hỏi, không chỉ kiến thức cần đo.
+
+Artifact: `results/robustness.csv`, `results/figures/robustness.png`.
+
+**4. Một điểm tổng hợp che giấu khác biệt bên trong**
+
+`acc_mmlu` gộp nhiều môn thành một số duy nhất. Phân tích theo subject cho thấy
+năng lực của cùng một model có thể khác đáng kể giữa các môn.
+
+Artifact: `results/mmlu_by_subject.csv`,
+`results/figures/mmlu_by_subject.png`.
+
+**5. Baseline giúp kiểm tra điểm có ý nghĩa hay không**
+
+Hai baseline random và majority tạo mốc tham chiếu không dùng language model.
+Trên MMLU, majority baseline đạt `0.253`, gần mức đoán ngẫu nhiên `0.25`.
+
+Artifact: `results/accuracy.csv`, `results/figures/saturation.png`.
+
+## Output
+
+Các CSV và figure phân tích được tái tạo mỗi lần chạy và không được commit.
+Prediction cache được commit để giảm chi phí chạy lại.
+
+| Output | Nội dung |
+|---|---|
+| `results/per_item.csv` | Một dòng cho mỗi cặp system–item, gồm prediction, đáp án trích xuất và correctness |
+| `results/accuracy.csv` | Accuracy MMLU/GSM8K và baseline |
+| `results/ranking.csv` | Thứ hạng model trên từng benchmark |
+| `results/coverage.csv` | Tỷ lệ output trích xuất được đáp án |
+| `results/metric_gap.csv` | So sánh grader lấy số đầu và số cuối |
+| `results/metric_gap_examples.csv` | Ví dụ model đúng nhưng grader dễ vỡ chấm sai |
+| `results/robustness.csv` | Accuracy trước và sau perturbation |
+| `results/mmlu_by_subject.csv` | Accuracy MMLU theo subject |
+| `results/error_analysis.csv` | Các prediction bị chấm sai để phân tích định tính |
+| `results/figures/*.png` | Biểu đồ tổng hợp |
+
+## Cách Hoạt Động
+
+```text
+src/data.py
+  tải và cache subset MMLU/GSM8K với seed cố định
+
+src/perturb.py
+  tạo MMLU twins bằng option shuffle và distractor
+
+src/models.py
+  chạy Hugging Face model, baseline hoặc fake model; cache generation
+
+src/evaluate.py
+  chấm từng system trên từng item → results/per_item.csv
+
+src/analysis.py
+  tạo bảng, biểu đồ, ranking và error analysis
+```
+
+Panel model và kích thước subset được cấu hình tập trung trong
+[`src/config.py`](src/config.py).
+
+## Tùy Chỉnh
+
+Thêm một Hugging Face instruction model vào `SYSTEMS`:
+
+```python
+{
+    "kind": "hf",
+    "name": "my-model",
+    "model_id": "organization/model-id",
+    "params_b": 4.0,
+}
+```
+
+Model cần hỗ trợ `AutoTokenizer`, `AutoModelForCausalLM` và chat template.
+Nếu model cần cấu hình riêng, có thể thêm `max_new_tokens`,
+`chat_template_kwargs` hoặc `trust_remote_code`.
+
+Đổi quy mô demo bằng:
+
+```python
+N_MMLU = 150
+N_GSM8K = 80
+N_PERTURB = 50
+SEED = 0
+```
+
+Khi prompt hoặc model ID thay đổi, cache key cũng thay đổi và model sẽ được chạy
+lại cho các item tương ứng.
+
+## Chạy Local
+
+### GPU NVIDIA
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+hf auth login
+
+python src/evaluate.py
+python src/analysis.py
+```
+
+Panel mặc định chạy từng model một bằng 4-bit quantization. Cần GPU hỗ trợ
+`bitsandbytes`; T4 16 GB là cấu hình đã dùng cho demo.
+
+### Không GPU: kiểm tra pipeline
+
+Chế độ này dùng dữ liệu và model giả có seed cố định. Nó chỉ kiểm tra luồng xử
+lý, không tạo kết quả nghiên cứu.
+
+```bash
+pip install pandas matplotlib numpy
+MINIBENCH_SYNTHETIC=1 python src/evaluate.py --fake
+MINIBENCH_SYNTHETIC=1 python src/analysis.py
+```
+
+## Tái Lập
+
+- Benchmark subset và perturbation dùng seed cố định.
+- Generation dùng greedy decoding (`do_sample=False`).
+- Mỗi generation cache theo hash của `model_id` và prompt.
+- `results/per_item.csv` lưu prediction ở cấp từng item để audit lại cách chấm.
+- `coverage.csv` cho biết khác biệt điểm có thể bị ảnh hưởng bởi lỗi extraction
+  hay không.
+
+## Giới Hạn
+
+- Subset nhỏ nên kết quả có độ bất định cao; các chênh lệch nhỏ không nên được
+  diễn giải như kết luận thống kê.
+- Math specialist được thêm có chủ đích để kiểm tra rank instability và không
+  thuộc panel model đa năng cùng hạng cân.
+- MMLU và GSM8K có thể đã xuất hiện trong dữ liệu huấn luyện của các model.
+- Demo chỉ phủ kiến thức tổng quát và toán, không đại diện cho mọi năng lực model.
+- Greedy decoding và một prompt cố định không đo độ nhạy theo prompt hoặc sampling.
+
+## Cấu Trúc Repo
+
+```text
+.
+├── notebook/
+│   ├── 1_smoke_test.ipynb
+│   └── 2_run_all.ipynb
+├── src/
+│   ├── analysis.py
+│   ├── config.py
+│   ├── data.py
+│   ├── evaluate.py
+│   ├── metrics.py
+│   ├── models.py
+│   └── perturb.py
+├── results/
+│   ├── predictions/
+│   └── figures/
+├── requirements.txt
+└── README.md
+```
